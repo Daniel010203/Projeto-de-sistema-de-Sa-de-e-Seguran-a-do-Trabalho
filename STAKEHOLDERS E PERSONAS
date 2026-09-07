@@ -1,0 +1,679 @@
+# FASE 1 — ENGENHARIA DE REQUISITOS
+
+## ETAPA 2 — STAKEHOLDERS E PERSONAS
+
+Agora vamos identificar formalmente **quem interage com a plataforma**, quais são seus interesses e quais problemas precisam ser resolvidos.
+
+Essa etapa é importante porque os futuros **requisitos funcionais, permissões, casos de uso e regras de negócio** nascerão daqui.
+
+---
+
+# 1. Mapa de Stakeholders
+
+A plataforma possui três níveis principais de stakeholders:
+
+```text
+                    PLATAFORMA SST SaaS
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+      PLATAFORMA        EMPRESA          USUÁRIO
+          │                │                │
+      Super Admin       Administrador     SESMT
+                         │                │
+                         ├── RH           ├── Técnico SST
+                         ├── Gestores     ├── Engenheiro SST
+                         │                ├── Médico
+                         │                └── Enfermeiro
+                         │
+                         └── Trabalhadores
+```
+
+---
+
+# 2. Classificação dos Stakeholders
+
+| Código | Stakeholder              | Categoria               |
+| ------ | ------------------------ | ----------------------- |
+| STK-01 | Super Administrador      | Plataforma SaaS         |
+| STK-02 | Administrador da Empresa | Gestão                  |
+| STK-03 | Gestor de SST            | Operacional/Estratégico |
+| STK-04 | Técnico de Segurança     | Operacional             |
+| STK-05 | Engenheiro de Segurança  | Técnico                 |
+| STK-06 | Médico do Trabalho       | Saúde                   |
+| STK-07 | Enfermeiro do Trabalho   | Saúde                   |
+| STK-08 | RH                       | Administrativo          |
+| STK-09 | Gestor de Área           | Gestão                  |
+| STK-10 | Membro da CIPA           | Comissão                |
+| STK-11 | Auditor                  | Compliance              |
+| STK-12 | Trabalhador              | Usuário final           |
+| STK-13 | Clínica/Laboratório      | Integração futura       |
+| STK-14 | Sistemas Externos        | Integração              |
+
+---
+
+# 3. Persona 01 — Super Administrador da Plataforma
+
+### Identificação
+
+**Código:** PER-01
+**Perfil:** Super Admin SaaS
+
+### Responsabilidade
+
+É o responsável pela administração global da plataforma.
+
+Não administra diretamente os processos internos de SST de cada empresa cliente, mas administra o ecossistema SaaS.
+
+### Necessidades
+
+* gerenciar tenants;
+* cadastrar empresas clientes;
+* controlar planos;
+* controlar assinaturas;
+* monitorar utilização;
+* administrar configurações globais;
+* acompanhar logs globais;
+* controlar segurança;
+* monitorar saúde da plataforma.
+
+### Principais ações
+
+```text
+SUPER ADMIN
+│
+├── Tenants
+├── Planos
+├── Usuários Globais
+├── Configurações
+├── Monitoramento
+├── Logs
+├── Auditoria
+└── Segurança
+```
+
+### Restrição importante
+
+O Super Admin **não deve possuir acesso irrestrito ao conteúdo sensível dos clientes por padrão**.
+
+Isso será importante para arquitetura de segurança e privacidade.
+
+---
+
+# 4. Persona 02 — Administrador da Empresa
+
+### Identificação
+
+**Código:** PER-02
+**Perfil:** Tenant Admin
+
+### Responsabilidade
+
+É o administrador principal da empresa dentro da plataforma.
+
+Representa o responsável pela gestão administrativa da conta.
+
+### Necessidades
+
+* configurar a empresa;
+* cadastrar estabelecimentos;
+* criar usuários;
+* atribuir perfis;
+* definir permissões;
+* visualizar indicadores;
+* acompanhar pendências;
+* controlar documentos.
+
+### Visão do sistema
+
+```text
+ADMIN EMPRESA
+│
+├── Minha Empresa
+│
+├── Usuários
+│
+├── Perfis
+│
+├── Estabelecimentos
+│
+├── Configurações
+│
+├── Dashboard
+│
+└── Auditoria
+```
+
+### Permissões
+
+Possui acesso administrativo dentro do seu tenant.
+
+Mas:
+
+> Não deve possuir automaticamente acesso a informações médicas sensíveis.
+
+Essa será uma regra importante.
+
+---
+
+# 5. Persona 03 — Gestor de SST
+
+### Identificação
+
+**Código:** PER-03
+
+### Perfil
+
+Profissional responsável pela coordenação das atividades de SST.
+
+Pode ser:
+
+* coordenador;
+* gerente;
+* responsável técnico;
+* gestor corporativo.
+
+### Necessidades
+
+* visualizar conformidade;
+* acompanhar indicadores;
+* monitorar riscos;
+* acompanhar planos de ação;
+* acompanhar documentos;
+* acompanhar vencimentos;
+* analisar pendências.
+
+### Dashboard esperado
+
+```text
+GESTÃO SST
+
+├── Conformidade
+│
+├── Riscos
+│
+├── PGR
+│
+├── PCMSO
+│
+├── Exames
+│
+├── Treinamentos
+│
+├── Acidentes
+│
+├── Planos de Ação
+│
+└── Pendências
+```
+
+---
+
+# 6. Persona 04 — Técnico de Segurança do Trabalho
+
+Essa será uma das personas centrais da plataforma.
+
+### Identificação
+
+**Código:** PER-04
+
+### Responsabilidades
+
+* inspeções;
+* identificação de riscos;
+* acompanhamento do PGR;
+* gestão de EPIs;
+* treinamentos;
+* investigação de acidentes;
+* inspeções;
+* acompanhamento de planos de ação.
+
+### Necessidades
+
+O sistema deve permitir que o Técnico trabalhe operacionalmente.
+
+Exemplo:
+
+```text
+TÉCNICO SST
+
+Hoje
+
+🔴 Inspeção pendente
+🟠 3 treinamentos vencendo
+🔴 EPI pendente
+🟢 4 ações concluídas
+```
+
+### Funcionalidades prioritárias
+
+* trabalhadores;
+* riscos;
+* inspeções;
+* PGR;
+* EPI;
+* treinamentos;
+* acidentes;
+* checklists;
+* planos de ação.
+
+---
+
+# 7. Persona 05 — Engenheiro de Segurança
+
+### Identificação
+
+**Código:** PER-05
+
+### Responsabilidades
+
+* avaliações técnicas;
+* gerenciamento de riscos;
+* elaboração técnica;
+* aprovação de documentos;
+* LTCAT;
+* pareceres;
+* análise de medidas de controle.
+
+### Necessidades
+
+* visualizar inventário de riscos;
+* revisar avaliações;
+* aprovar documentos;
+* acompanhar medições;
+* gerar relatórios técnicos.
+
+### Diferencial
+
+Esse perfil poderá possuir permissões específicas como:
+
+```text
+PGR_APPROVE
+LTCAT_CREATE
+LTCAT_APPROVE
+TECHNICAL_REPORT_SIGN
+```
+
+---
+
+# 8. Persona 06 — Médico do Trabalho
+
+### Identificação
+
+**Código:** PER-06
+
+### Responsabilidades
+
+* PCMSO;
+* exames ocupacionais;
+* ASOs;
+* acompanhamento da saúde ocupacional.
+
+### Necessidades
+
+```text
+SAÚDE OCUPACIONAL
+
+├── PCMSO
+├── Exames
+├── Agenda
+├── ASOs
+├── Aptidão
+├── Histórico
+└── Indicadores
+```
+
+### Regra crítica
+
+Informações de saúde devem possuir **controle de acesso especializado**.
+
+Nem todo usuário administrativo poderá visualizar:
+
+* resultados médicos;
+* informações clínicas;
+* dados sensíveis.
+
+Isso será tratado posteriormente como requisito de segurança e regra de negócio.
+
+---
+
+# 9. Persona 07 — Enfermeiro do Trabalho
+
+### Identificação
+
+**Código:** PER-07
+
+### Responsabilidades
+
+* organização de exames;
+* acompanhamento de agendas;
+* controle operacional;
+* acompanhamento ocupacional.
+
+### Necessidades
+
+* agenda;
+* exames pendentes;
+* trabalhadores convocados;
+* controle de ASO;
+* indicadores.
+
+---
+
+# 10. Persona 08 — Recursos Humanos
+
+### Identificação
+
+**Código:** PER-08
+
+### Responsabilidades
+
+* cadastro de trabalhadores;
+* admissões;
+* movimentações;
+* alterações de função;
+* transferências;
+* desligamentos.
+
+### Fluxo importante
+
+```text
+RH
+ │
+ ▼
+Novo Trabalhador
+ │
+ ▼
+Cadastro
+ │
+ ▼
+Setor
+ │
+ ▼
+Cargo/Função
+ │
+ ▼
+Integração SST
+ │
+ ├── Riscos
+ ├── Exames
+ ├── Treinamentos
+ └── Documentos
+```
+
+Esse será um dos fluxos mais importantes da plataforma.
+
+---
+
+# 11. Persona 09 — Gestor de Área
+
+### Identificação
+
+**Código:** PER-09
+
+Pode representar:
+
+* gerente;
+* supervisor;
+* coordenador.
+
+### Necessidades
+
+Não precisa necessariamente acessar todo o sistema.
+
+Precisa visualizar informações relacionadas à sua área.
+
+Exemplo:
+
+```text
+SETOR PRODUÇÃO
+
+Trabalhadores: 48
+
+Pendências: 07
+
+Treinamentos: 89%
+
+Inspeções: 92%
+
+Ações abertas: 04
+```
+
+### Princípio
+
+> O gestor deve enxergar apenas os dados sob sua responsabilidade.
+
+---
+
+# 12. Persona 10 — Membro da CIPA
+
+### Identificação
+
+**Código:** PER-10
+
+### Necessidades
+
+* calendário;
+* reuniões;
+* atas;
+* plano de trabalho;
+* inspeções;
+* documentos;
+* ações.
+
+### Visão
+
+```text
+CIPA
+
+├── Minha Gestão
+├── Membros
+├── Reuniões
+├── Atas
+├── Inspeções
+├── Ações
+└── Documentos
+```
+
+---
+
+# 13. Persona 11 — Auditor
+
+### Identificação
+
+**Código:** PER-11
+
+### Responsabilidade
+
+Avaliar processos e conformidade.
+
+### Necessidades
+
+* visualizar documentos;
+* consultar histórico;
+* verificar evidências;
+* consultar logs;
+* analisar conformidade.
+
+### Restrição
+
+Por padrão:
+
+```text
+AUDITOR
+   │
+   ├── VIEW
+   ├── EXPORT
+   └── AUDIT
+
+❌ EDIT
+❌ DELETE
+```
+
+O auditor deve possuir perfil predominantemente de consulta.
+
+---
+
+# 14. Persona 12 — Trabalhador
+
+### Identificação
+
+**Código:** PER-12
+
+### Visão simplificada
+
+O trabalhador poderá futuramente possuir um portal próprio.
+
+```text
+MEU PORTAL
+
+├── Meus Dados
+├── Meus Documentos
+├── Meus Treinamentos
+├── Meus EPIs
+├── Comunicados
+└── Solicitações
+```
+
+Não terá acesso à gestão corporativa.
+
+---
+
+# 15. Matriz resumida de interesses
+
+| Stakeholder   | Principal Interesse  |
+| ------------- | -------------------- |
+| Super Admin   | Operação do SaaS     |
+| Admin Empresa | Gestão da conta      |
+| Gestor SST    | Conformidade         |
+| Técnico SST   | Operação             |
+| Engenheiro    | Gestão técnica       |
+| Médico        | Saúde ocupacional    |
+| Enfermeiro    | Operação da saúde    |
+| RH            | Trabalhadores        |
+| Gestor        | Indicadores          |
+| CIPA          | Gestão da comissão   |
+| Auditor       | Evidências           |
+| Trabalhador   | Informações próprias |
+
+---
+
+# 16. Hierarquia conceitual de acesso
+
+Precisamos tomar cuidado para não criar uma hierarquia rígida demais.
+
+O modelo será baseado em:
+
+## Tenant + Role + Permission + Scope
+
+```text
+USUÁRIO
+   │
+   ▼
+TENANT
+   │
+   ▼
+ROLE
+   │
+   ▼
+PERMISSION
+   │
+   ▼
+SCOPE
+```
+
+Exemplo:
+
+```text
+Usuário
+   │
+   ├── Tenant: Empresa A
+   │
+   ├── Role: Técnico SST
+   │
+   ├── Permission:
+   │      ├── PGR_VIEW
+   │      ├── PGR_EDIT
+   │      └── EPI_MANAGE
+   │
+   └── Scope:
+          └── Estabelecimento RJ
+```
+
+Isso será extremamente importante quando chegarmos à arquitetura de IAM.
+
+---
+
+# 17. Matriz inicial de responsabilidades
+
+| Função        | Empresa  | Trabalhador       | PGR             | PCMSO                | CIPA            | Auditoria |
+| ------------- | -------- | ----------------- | --------------- | -------------------- | --------------- | --------- |
+| Super Admin   | Global   | Não operacional   | Não operacional | Restrito             | Não operacional | Global    |
+| Admin Empresa | Gestão   | Gestão            | Consulta        | Restrito             | Gestão          | Consulta  |
+| Gestor SST    | Consulta | Consulta          | Gestão          | Consulta             | Consulta        | Consulta  |
+| Técnico SST   | Consulta | Operacional       | Gestão          | Não clínico          | Operacional     | Consulta  |
+| Engenheiro    | Consulta | Consulta          | Aprovação       | Consulta             | Consulta        | Consulta  |
+| Médico        | Consulta | Saúde             | Consulta        | Gestão               | Não             | Restrito  |
+| Enfermeiro    | Consulta | Saúde operacional | Não             | Gestão operacional   | Não             | Não       |
+| RH            | Consulta | Gestão            | Consulta        | Administrativo       | Consulta        | Não       |
+| Gestor        | Consulta | Escopo            | Indicadores     | Indicadores          | Consulta        | Não       |
+| Auditor       | Consulta | Conforme escopo   | Consulta        | Conforme autorização | Consulta        | Consulta  |
+| Trabalhador   | Própria  | Próprio           | Não             | Próprio escopo       | Não             | Não       |
+
+**Observação:** esta matriz ainda é conceitual. Posteriormente será transformada em uma **Matriz formal de RBAC e Permissões**.
+
+---
+
+# 18. Conclusão da Etapa 2
+
+Nesta etapa definimos que a plataforma não será apenas um sistema utilizado por "Administrador e Usuário".
+
+Ela terá um modelo organizacional mais robusto:
+
+```text
+                 MULTI-TENANT
+                      │
+                ORGANIZAÇÃO
+                      │
+                  USUÁRIOS
+                      │
+        ┌─────────────┼──────────────┐
+        │             │              │
+       ROLE       PERMISSION       SCOPE
+        │             │              │
+        └─────────────┴──────────────┘
+                      │
+                   ACESSO
+```
+
+Isso será uma das bases da nossa futura arquitetura de segurança.
+
+---
+
+## Status do Projeto
+
+| Etapa                     | Status      |
+| ------------------------- | ----------- |
+| Visão do Produto          | ✅ Concluída |
+| Stakeholders              | ✅ Concluída |
+| Personas                  | ✅ Concluída |
+| Escopo do Sistema         | ⏳ Próxima   |
+| Requisitos Funcionais     | ⏳           |
+| Requisitos Não Funcionais | ⏳           |
+| Regras de Negócio         | ⏳           |
+| Casos de Uso              | ⏳           |
+| Product Backlog           | ⏳           |
+
+# Próxima etapa: ETAPA 3 — ESCOPO DO SISTEMA
+
+Na próxima etapa vamos formalizar o **escopo funcional completo**, separando rigorosamente:
+
+* **Escopo do produto**
+* **MVP**
+* **Fora do escopo**
+* **Módulos**
+* **Funcionalidades por módulo**
+* **Roadmap de releases**
+* **Dependências entre módulos**
+
+Essa definição será a base para começarmos a especificar os requisitos funcionais sem criar ambiguidades ou crescimento descontrolado de escopo.
