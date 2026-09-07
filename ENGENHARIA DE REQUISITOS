@@ -1,0 +1,682 @@
+Vamos iniciar pela **Etapa 1 — Documento de Visão do Produto**.
+
+Vou tratar este documento como o primeiro artefato formal da Engenharia de Software da plataforma. A ideia é definir **o que estamos construindo, para quem, qual problema resolve e quais são os limites do produto**, sem entrar ainda em código ou modelagem de banco.
+
+# FASE 1 — ENGENHARIA DE REQUISITOS
+
+## ETAPA 1 — VISÃO DO PRODUTO
+
+### 1. Identificação
+
+**Nome provisório:** SST360
+**Tipo:** Plataforma SaaS Web
+**Domínio:** Saúde e Segurança do Trabalho
+**Modelo:** Multi-tenant
+**Arquitetura:** Modular
+**Público:** Empresas, SESMT, RH, Saúde Ocupacional, gestores e trabalhadores.
+
+---
+
+## 2. Visão do produto
+
+A SST360 será uma plataforma SaaS destinada à **gestão integrada de Saúde e Segurança do Trabalho**, centralizando informações, processos, documentos, programas ocupacionais, obrigações, controles e indicadores em um único ambiente.
+
+O sistema deverá permitir que as informações sejam cadastradas de forma estruturada e posteriormente reutilizadas nos diferentes processos de SST.
+
+O princípio fundamental será:
+
+> **Uma única fonte de dados para múltiplos processos, documentos e indicadores de SST.**
+
+---
+
+## 3. Problema a ser solucionado
+
+A gestão de SST frequentemente envolve informações distribuídas entre:
+
+* planilhas;
+* documentos Word;
+* arquivos PDF;
+* sistemas diferentes;
+* e-mails;
+* pastas compartilhadas;
+* controles manuais;
+* documentos físicos.
+
+Isso pode resultar em:
+
+* duplicidade de informações;
+* inconsistências;
+* dificuldade de rastreamento;
+* documentos desatualizados;
+* perda de histórico;
+* dificuldade de identificar vencimentos;
+* dificuldade de auditoria;
+* processos manuais;
+* baixa integração entre Segurança, Saúde e RH.
+
+A plataforma deverá centralizar essas informações e estabelecer relacionamentos entre elas.
+
+---
+
+# 4. Solução proposta
+
+A solução será baseada em um **núcleo central de dados organizacionais e ocupacionais**.
+
+```text
+EMPRESA
+   │
+   ├── ESTABELECIMENTOS
+   │       │
+   │       └── SETORES
+   │              │
+   │              └── FUNÇÕES
+   │                     │
+   │                     └── TRABALHADORES
+   │
+   └── SESMT
+```
+
+A partir dessa estrutura:
+
+```text
+TRABALHADOR
+     │
+     ├── RISCOS
+     ├── EXAMES
+     ├── ASO
+     ├── EPI
+     ├── TREINAMENTOS
+     ├── ACIDENTES
+     └── DOCUMENTOS
+```
+
+E os dados poderão alimentar:
+
+```text
+PGR
+PCMSO
+LTCAT
+PPP
+ASO
+CIPA
+TREINAMENTOS
+RELATÓRIOS
+INDICADORES
+```
+
+---
+
+# 5. Objetivo geral
+
+Desenvolver uma plataforma SaaS capaz de centralizar, organizar, controlar e disponibilizar informações relacionadas à Saúde e Segurança do Trabalho, permitindo a gestão dos programas ocupacionais, processos das NRs, trabalhadores, documentos, exames, riscos, treinamentos, equipamentos, ocorrências e indicadores.
+
+---
+
+# 6. Objetivos específicos
+
+A plataforma deverá possibilitar:
+
+1. Gestão de múltiplas empresas.
+2. Gestão de estabelecimentos.
+3. Gestão de setores.
+4. Gestão de cargos e funções.
+5. Gestão de trabalhadores.
+6. Gestão de usuários.
+7. Controle de perfis e permissões.
+8. Gestão do SESMT.
+9. Gestão de riscos ocupacionais.
+10. Gestão do GRO/PGR.
+11. Gestão do PCMSO.
+12. Gestão de exames ocupacionais.
+13. Gestão de ASOs.
+14. Gestão de CIPA.
+15. Gestão de EPIs.
+16. Gestão de treinamentos.
+17. Gestão de acidentes e incidentes.
+18. Gestão de documentos.
+19. Geração automática de documentos.
+20. Controle de versões.
+21. Controle de vencimentos.
+22. Notificações e alertas.
+23. Dashboards.
+24. Indicadores de SST.
+25. Auditoria e rastreabilidade.
+26. Integrações externas.
+27. Preparação para integração com eSocial SST.
+
+---
+
+# 7. Princípio arquitetural de negócio
+
+Um dos principais conceitos do produto será:
+
+## **Cadastrar uma vez → reutilizar em vários processos.**
+
+Exemplo:
+
+Um trabalhador é cadastrado:
+
+```text
+João
+ ↓
+Empresa A
+ ↓
+Estabelecimento 01
+ ↓
+Setor Produção
+ ↓
+Função Operador
+```
+
+O sistema identifica os relacionamentos:
+
+```text
+Função
+   ↓
+Perigos
+   ↓
+Riscos
+   ↓
+Medidas de controle
+   ↓
+Exames
+   ↓
+Treinamentos
+   ↓
+EPIs
+```
+
+Essas informações podem ser utilizadas pelos diferentes módulos.
+
+Isso será uma das principais características arquiteturais do sistema.
+
+---
+
+# 8. Gestão por Norma Regulamentadora
+
+A plataforma deverá possuir uma arquitetura capaz de incorporar as NRs progressivamente.
+
+Não queremos criar um sistema rígido onde cada nova NR exija reconstrução da aplicação.
+
+Teremos um conceito semelhante a:
+
+```text
+Motor de Requisitos SST
+          │
+          ├── NR-01
+          ├── NR-04
+          ├── NR-05
+          ├── NR-06
+          ├── NR-07
+          ├── NR-09
+          ├── NR-10
+          ├── NR-12
+          ├── NR-17
+          ├── NR-20
+          ├── NR-33
+          ├── NR-35
+          └── ...
+```
+
+Cada NR poderá possuir:
+
+* requisitos;
+* processos;
+* cadastros;
+* documentos;
+* responsabilidades;
+* evidências;
+* controles;
+* prazos;
+* treinamentos;
+* indicadores;
+* workflows.
+
+---
+
+# 9. Exemplo: NR-05
+
+A NR-05 não será simplesmente um cadastro de CIPA.
+
+Teremos um módulo completo:
+
+```text
+NR-05
+ │
+ ├── Dimensionamento
+ ├── Constituição
+ ├── Edital
+ ├── Convocação
+ ├── Inscrições
+ ├── Candidatos
+ ├── Eleição
+ ├── Apuração
+ ├── Resultado
+ ├── Atas
+ ├── Posse
+ ├── Treinamento
+ ├── Reuniões
+ ├── Plano de trabalho
+ └── Histórico
+```
+
+Assim, a NR será tratada como **processo de negócio**.
+
+---
+
+# 10. Gestão documental
+
+O sistema deverá possuir um **Motor de Documentos**.
+
+```text
+DADOS ESTRUTURADOS
+        ↓
+TEMPLATE
+        ↓
+PROCESSAMENTO
+        ↓
+DOCUMENTO
+        ↓
+PDF
+        ↓
+ARMAZENAMENTO
+        ↓
+HISTÓRICO
+```
+
+Exemplos:
+
+* PGR;
+* PCMSO;
+* LTCAT;
+* PPP;
+* ASO;
+* atas;
+* relatórios;
+* certificados;
+* documentos de CIPA;
+* documentos internos.
+
+Cada documento deverá possuir, quando aplicável:
+
+* proprietário;
+* empresa;
+* estabelecimento;
+* trabalhador;
+* tipo;
+* versão;
+* status;
+* data de emissão;
+* validade;
+* responsável;
+* histórico;
+* evidências.
+
+---
+
+# 11. Perfis de acesso
+
+A plataforma deverá utilizar **controle de acesso baseado em papéis — RBAC**.
+
+Perfis iniciais:
+
+```text
+SUPER ADMIN
+      │
+      ▼
+ADMINISTRADOR DA EMPRESA
+      │
+      ├── GESTOR SST
+      ├── TÉCNICO SST
+      ├── ENGENHEIRO SST
+      ├── MÉDICO DO TRABALHO
+      ├── ENFERMEIRO
+      ├── RH
+      ├── GESTOR
+      ├── CIPA
+      ├── AUDITOR
+      └── TRABALHADOR
+```
+
+Além do perfil, haverá permissões específicas.
+
+Exemplo:
+
+```text
+PGR_VIEW
+PGR_CREATE
+PGR_EDIT
+PGR_APPROVE
+PGR_EXPORT
+```
+
+Isso permitirá maior granularidade.
+
+---
+
+# 12. Modelo SaaS
+
+A plataforma será **multi-tenant**.
+
+Conceitualmente:
+
+```text
+                    SST360
+                      │
+       ┌──────────────┼──────────────┐
+       │              │              │
+   EMPRESA A      EMPRESA B      EMPRESA C
+       │              │              │
+     Dados          Dados          Dados
+```
+
+Uma empresa não poderá acessar dados pertencentes a outra.
+
+Esse isolamento será requisito fundamental da arquitetura.
+
+---
+
+# 13. Segurança
+
+A segurança será considerada desde a concepção.
+
+Requisitos estratégicos:
+
+* autenticação segura;
+* autorização;
+* RBAC;
+* MFA;
+* criptografia;
+* controle de sessão;
+* proteção de APIs;
+* isolamento de tenants;
+* logs;
+* auditoria;
+* backups;
+* recuperação;
+* controle de documentos;
+* rastreabilidade;
+* princípio do menor privilégio.
+
+A plataforma também deverá ser projetada considerando os requisitos aplicáveis da **LGPD**.
+
+---
+
+# 14. Dashboard
+
+Cada perfil poderá possuir uma visão adequada às suas responsabilidades.
+
+### Administrador
+
+```text
+Empresas
+Usuários
+Planos
+Uso
+Segurança
+Auditoria
+```
+
+### Gestor SST
+
+```text
+Riscos
+PGR
+PCMSO
+Treinamentos
+Exames
+Pendências
+Indicadores
+```
+
+### Trabalhador
+
+```text
+Meus documentos
+Meus treinamentos
+Meus exames
+Meus EPIs
+Minhas informações
+```
+
+---
+
+# 15. Central de pendências
+
+Será um componente estratégico.
+
+Exemplo:
+
+```text
+CENTRAL SST
+
+🔴 Críticas
+12
+
+🟠 Atenção
+18
+
+🟢 Conformes
+94%
+```
+
+Possíveis alertas:
+
+* exame próximo do vencimento;
+* treinamento vencido;
+* EPI pendente;
+* documento vencido;
+* plano de ação atrasado;
+* revisão necessária;
+* reunião pendente;
+* documentação incompleta.
+
+---
+
+# 16. Indicadores
+
+A plataforma deverá permitir a construção de indicadores relacionados a:
+
+### Segurança
+
+* acidentes;
+* incidentes;
+* afastamentos;
+* frequência;
+* gravidade;
+* inspeções;
+* não conformidades;
+* ações preventivas.
+
+### Saúde
+
+* exames realizados;
+* exames pendentes;
+* ASOs;
+* aptidão;
+* afastamentos;
+* indicadores ocupacionais.
+
+### Gestão
+
+* documentos válidos;
+* documentos vencidos;
+* treinamentos;
+* conformidade;
+* pendências;
+* planos de ação.
+
+---
+
+# 17. Escopo inicial do MVP
+
+Para evitar excesso de complexidade, o MVP não implementará todas as NRs imediatamente.
+
+### MVP — versão inicial
+
+```text
+CORE
+├── Multi-tenancy
+├── Autenticação
+├── Usuários
+├── Perfis
+├── Permissões
+├── Empresas
+├── Estabelecimentos
+├── Setores
+├── Cargos
+├── Funções
+└── Trabalhadores
+
+SST
+├── Perigos
+├── Riscos
+├── Controles
+└── PGR
+
+DOCUMENTOS
+├── Templates
+├── Geração
+├── Versionamento
+└── Armazenamento
+
+GESTÃO
+├── Dashboard
+├── Pendências
+└── Auditoria
+```
+
+Depois adicionaremos:
+
+```text
+PCMSO
+↓
+Exames
+↓
+ASO
+↓
+CIPA
+↓
+EPI
+↓
+Treinamentos
+↓
+Acidentes
+↓
+LTCAT
+↓
+PPP
+↓
+Demais NRs
+↓
+eSocial
+```
+
+---
+
+# 18. Fora do escopo inicial
+
+Não faremos inicialmente:
+
+* aplicativo mobile nativo;
+* todas as NRs;
+* IA;
+* machine learning;
+* billing complexo;
+* microsserviços;
+* Kubernetes;
+* integrações com todos os sistemas externos.
+
+Esses recursos poderão entrar posteriormente.
+
+---
+
+# 19. Diferenciais pretendidos
+
+A plataforma deverá buscar diferenciação através de:
+
+### 1. Integração dos dados
+
+Um dado alimenta vários processos.
+
+### 2. Gestão por trabalhador
+
+Dossiê ocupacional completo.
+
+### 3. Gestão por setor
+
+Visão consolidada dos riscos e obrigações.
+
+### 4. Gestão por NR
+
+Processos específicos para cada norma.
+
+### 5. Automação documental
+
+Dados → documentos.
+
+### 6. Gestão de conformidade
+
+Pendências → alertas → ações.
+
+### 7. Auditoria
+
+Histórico completo das alterações.
+
+### 8. SaaS multiempresa
+
+Uma plataforma para diversas organizações.
+
+---
+
+# 20. Visão futura
+
+A longo prazo, podemos evoluir para:
+
+```text
+                  SST360
+                     │
+       ┌─────────────┼─────────────┐
+       ▼             ▼             ▼
+    SEGURANÇA      SAÚDE        GESTÃO
+       │             │             │
+       ▼             ▼             ▼
+      RISCOS       EXAMES       INDICADORES
+       │             │             │
+       └─────────────┼─────────────┘
+                     ▼
+              MOTOR SST
+                     │
+        ┌────────────┼────────────┐
+        ▼            ▼            ▼
+    DOCUMENTOS    COMPLIANCE    eSOCIAL
+                     │
+                     ▼
+                    IA
+```
+
+---
+
+# 21. Critério de sucesso do produto
+
+O projeto será considerado tecnicamente bem-sucedido quando uma empresa conseguir:
+
+> **Cadastrar sua estrutura organizacional, trabalhadores e informações de SST uma única vez e utilizar esses dados para administrar seus processos, documentos, obrigações, controles e indicadores em uma plataforma centralizada, segura e auditável.**
+
+---
+
+## 📌 Status do projeto
+
+**Projeto:** Plataforma SST360
+**Tipo:** SaaS
+**Fase:** 1 — Engenharia de Requisitos
+**Etapa:** 1 — Visão do Produto
+**Status:** ✅ Primeira versão definida
+
+### Próxima etapa:
+
+# **FASE 1 — ETAPA 2: Stakeholders e Personas**
+
+Nessa etapa vamos detalhar cada ator do sistema — **Super Admin, Administrador da Empresa, Técnico de Segurança, Engenheiro, Médico do Trabalho, RH, Gestor, CIPA, Auditor e Trabalhador** — definindo objetivos, responsabilidades, permissões, necessidades e interação com a plataforma.
+
+Depois disso partimos para o **Escopo detalhado → Requisitos Funcionais → Requisitos Não Funcionais → Regras de Negócio → Casos de Uso**.
