@@ -1,0 +1,1055 @@
+Perfeito. Vamos avançar para uma das etapas mais importantes da engenharia do domínio.
+
+# FASE 1 — ENGENHARIA DE REQUISITOS
+
+# ETAPA 6 — REGRAS DE NEGÓCIO
+
+Os requisitos funcionais dizem **o que o sistema faz**.
+
+As regras de negócio definem **as condições, restrições e comportamentos que devem ser respeitados**.
+
+No SST360, essa etapa é particularmente importante porque o diferencial do produto não estará apenas no código. Estará na capacidade de transformar processos reais de:
+
+* Saúde Ocupacional;
+* Segurança do Trabalho;
+* GRO;
+* PGR;
+* PCMSO;
+* gestão documental;
+* Normas Regulamentadoras;
+
+em regras consistentes dentro da plataforma.
+
+---
+
+# 1. Estrutura de identificação
+
+Utilizaremos:
+
+```text
+RN-001
+RN-002
+RN-003
+...
+```
+
+Classificação por domínio:
+
+| Faixa           | Domínio                    |
+| --------------- | -------------------------- |
+| RN-001 a RN-020 | Plataforma e Multi-tenancy |
+| RN-021 a RN-040 | Usuários e Acessos         |
+| RN-041 a RN-060 | Organização                |
+| RN-061 a RN-080 | Trabalhadores              |
+| RN-081 a RN-110 | Perigos e Riscos           |
+| RN-111 a RN-140 | PGR                        |
+| RN-141 a RN-160 | Documentos                 |
+| RN-161+         | Módulos futuros            |
+
+---
+
+# 2. Regras de Negócio — Plataforma SaaS
+
+## RN-001 — Isolamento de Tenant
+
+Todo dado operacional cadastrado na plataforma deverá estar associado a um único tenant.
+
+```text
+TENANT
+   │
+   ├── Usuários
+   ├── Empresas
+   ├── Trabalhadores
+   ├── Riscos
+   ├── PGR
+   └── Documentos
+```
+
+Um usuário comum não poderá acessar dados pertencentes a outro tenant.
+
+---
+
+## RN-002 — Tenant como Fronteira de Segurança
+
+O `tenant_id` deverá ser considerado uma fronteira lógica obrigatória de segurança.
+
+Toda consulta operacional deverá considerar o contexto do tenant autenticado.
+
+Conceito:
+
+```text
+USUÁRIO
+   │
+   ▼
+TENANT A
+   │
+   ▼
+APENAS DADOS DO TENANT A
+```
+
+---
+
+## RN-003 — Super Administrador
+
+O Super Administrador será uma entidade administrativa da plataforma e possuirá privilégios globais.
+
+Porém, suas ações deverão ser auditadas.
+
+---
+
+## RN-004 — Status do Tenant
+
+Um tenant poderá possuir os seguintes estados:
+
+```text
+EM_CONFIGURAÇÃO
+ATIVO
+SUSPENSO
+INATIVO
+```
+
+### Regras
+
+* Tenant suspenso não poderá realizar operações normais.
+* Tenant inativo não poderá permitir autenticação de usuários.
+* Tenant em configuração poderá possuir acesso limitado.
+* Apenas administradores autorizados poderão alterar o status.
+
+---
+
+# 3. Regras de Negócio — Usuários e Acessos
+
+## RN-021 — Vínculo de Usuário
+
+Todo usuário operacional deverá estar vinculado a pelo menos um tenant.
+
+---
+
+## RN-022 — Usuário Ativo
+
+Somente usuários ativos poderão autenticar-se na plataforma.
+
+---
+
+## RN-023 — Perfil não substitui Permissão
+
+O perfil representa uma função organizacional.
+
+A autorização efetiva deverá ser baseada em permissões.
+
+```text
+PERFIL
+   │
+   ▼
+CONJUNTO DE PERMISSÕES
+   │
+   ▼
+AUTORIZAÇÃO
+```
+
+Exemplo:
+
+```text
+GESTOR_SST
+
+Pode possuir:
+
+PGR_VIEW
+PGR_CREATE
+PGR_UPDATE
+PGR_APPROVE
+```
+
+---
+
+## RN-024 — Princípio do Menor Privilégio
+
+Um usuário deverá possuir somente as permissões necessárias para exercer suas responsabilidades.
+
+---
+
+## RN-025 — Escopo Organizacional
+
+Uma permissão poderá possuir restrições de escopo.
+
+Exemplo:
+
+```text
+USUÁRIO
+   │
+   ├── Pode visualizar PGR
+   │
+   └── Apenas no Estabelecimento A
+```
+
+Escopos possíveis:
+
+* tenant;
+* empresa;
+* estabelecimento;
+* setor.
+
+---
+
+## RN-026 — Desativação de Usuário
+
+Usuários desativados:
+
+* não poderão autenticar;
+* não perderão registros históricos;
+* permanecerão vinculados aos eventos anteriores;
+* não deverão ser removidos fisicamente se possuírem histórico relevante.
+
+---
+
+## RN-027 — Segregação de Funções
+
+O sistema deverá permitir futuramente separar atividades críticas.
+
+Exemplo:
+
+```text
+CRIADOR
+   ≠
+APROVADOR
+```
+
+Essa regra será especialmente relevante para:
+
+* aprovação de documentos;
+* programas;
+* auditorias;
+* processos de CIPA.
+
+---
+
+# 4. Regras de Negócio — Organização
+
+## RN-041 — Hierarquia Organizacional
+
+A estrutura organizacional seguirá inicialmente:
+
+```text
+TENANT
+   │
+   ▼
+EMPRESA
+   │
+   ▼
+ESTABELECIMENTO
+   │
+   ▼
+SETOR
+```
+
+---
+
+## RN-042 — Estabelecimento Vinculado
+
+Todo estabelecimento deverá pertencer a uma empresa.
+
+Não será permitido estabelecimento sem empresa.
+
+---
+
+## RN-043 — Setor Vinculado
+
+Todo setor deverá estar associado a um estabelecimento.
+
+---
+
+## RN-044 — Inativação Organizacional
+
+Uma entidade organizacional não deverá ser excluída fisicamente quando possuir dependências históricas.
+
+Exemplo:
+
+```text
+SETOR
+ │
+ └── Possui trabalhadores históricos
+```
+
+Nesse caso:
+
+```text
+STATUS = INATIVO
+```
+
+---
+
+## RN-045 — Integridade de Vínculos
+
+Não será permitido associar:
+
+* trabalhador;
+* risco;
+* programa;
+* documento;
+
+a uma estrutura organizacional pertencente a outro tenant.
+
+---
+
+## RN-046 — Cargo e Função
+
+Cargo e função deverão ser tratados como conceitos independentes.
+
+Exemplo:
+
+```text
+CARGO
+Técnico de Segurança
+
+FUNÇÃO
+Responsável por inspeções e treinamentos
+```
+
+Isso permitirá maior flexibilidade na modelagem ocupacional.
+
+---
+
+# 5. Regras de Negócio — Trabalhadores
+
+## RN-061 — Identificação do Trabalhador
+
+O trabalhador deverá possuir identificador único dentro do contexto organizacional definido.
+
+A estratégia de unicidade deverá ser tecnicamente definida posteriormente.
+
+---
+
+## RN-062 — Histórico Profissional
+
+Movimentações profissionais não deverão sobrescrever o histórico.
+
+Exemplo:
+
+```text
+2024
+Setor A
+   ↓
+2025
+Setor B
+```
+
+O sistema deverá preservar:
+
+```text
+HISTÓRICO
+
+2024 → Setor A
+2025 → Setor B
+```
+
+---
+
+## RN-063 — Lotação Atual
+
+O trabalhador deverá possuir uma lotação atual válida enquanto estiver com vínculo ativo, salvo exceções administrativas controladas.
+
+---
+
+## RN-064 — Desligamento
+
+O desligamento não deverá apagar:
+
+* histórico profissional;
+* riscos anteriores;
+* treinamentos;
+* documentos;
+* registros ocupacionais permitidos pelas regras de retenção aplicáveis.
+
+---
+
+## RN-065 — Dossiê Ocupacional
+
+O trabalhador possuirá um dossiê ocupacional lógico.
+
+Esse dossiê será composto por referências aos módulos da plataforma.
+
+```text
+TRABALHADOR
+│
+├── Histórico Profissional
+├── Exposição a Riscos
+├── Saúde Ocupacional
+├── Treinamentos
+├── EPI
+├── Acidentes
+└── Documentos
+```
+
+Importante: inicialmente, o dossiê não precisa ser uma única tabela no banco.
+
+Será uma **visão agregadora do domínio**.
+
+---
+
+## RN-066 — Histórico de Exposição
+
+A alteração de setor ou função deverá preservar o histórico de exposição ocupacional do trabalhador.
+
+Essa regra será importante para:
+
+* PCMSO;
+* LTCAT;
+* PPP;
+* análises futuras.
+
+---
+
+# 6. Regras de Negócio — Perigos e Riscos
+
+Este será um dos domínios mais importantes do produto.
+
+---
+
+## RN-081 — Contextualização do Perigo
+
+Um perigo poderá existir como cadastro de referência global do tenant.
+
+Exemplo:
+
+```text
+RUÍDO
+PRODUTOS QUÍMICOS
+TRABALHO EM ALTURA
+ELETRICIDADE
+```
+
+Porém, a existência do perigo não significa automaticamente exposição.
+
+---
+
+## RN-082 — Risco Contextualizado
+
+Um risco ocupacional deverá existir dentro de um contexto.
+
+Exemplo:
+
+```text
+PERIGO
+Ruído
+     │
+     ▼
+SETOR
+Produção
+     │
+     ▼
+ATIVIDADE
+Operação de Máquina
+     │
+     ▼
+GRUPO EXPOSTO
+Operadores
+```
+
+Portanto:
+
+> Um perigo genérico pode existir no catálogo, mas o risco precisa possuir contexto.
+
+---
+
+## RN-083 — Exposição
+
+Um trabalhador poderá estar exposto a diferentes riscos conforme:
+
+* setor;
+* função;
+* atividade;
+* período.
+
+---
+
+## RN-084 — Histórico de Avaliação
+
+Uma nova avaliação de risco não deverá substituir silenciosamente a avaliação anterior.
+
+Deverá existir histórico.
+
+```text
+AVALIAÇÃO V1
+      │
+      ▼
+AVALIAÇÃO V2
+      │
+      ▼
+AVALIAÇÃO V3
+```
+
+---
+
+## RN-085 — Matriz Configurável
+
+O cálculo do nível de risco deverá ser baseado em uma matriz configurável.
+
+Não devemos fixar no código:
+
+```text
+PROBABILIDADE × SEVERIDADE
+```
+
+A estrutura deverá permitir evolução.
+
+Exemplo:
+
+```text
+MATRIZ A
+
+Probabilidade × Severidade
+
+
+MATRIZ B
+
+Probabilidade × Severidade × Exposição
+```
+
+Essa decisão será importante para tornar a plataforma adaptável a diferentes metodologias.
+
+---
+
+## RN-086 — Classificação Automática
+
+Quando aplicável, o nível de risco deverá ser calculado automaticamente com base nos parâmetros da matriz selecionada.
+
+---
+
+## RN-087 — Risco Residual
+
+Quando medidas de controle forem implementadas, o sistema poderá registrar uma avaliação residual.
+
+```text
+RISCO INICIAL
+      │
+      ▼
+CONTROLES
+      │
+      ▼
+RISCO RESIDUAL
+```
+
+---
+
+## RN-088 — Hierarquia de Controles
+
+Medidas de controle deverão poder ser classificadas conforme:
+
+```text
+1. ELIMINAÇÃO
+2. SUBSTITUIÇÃO
+3. ENGENHARIA
+4. ADMINISTRATIVO
+5. EPI
+```
+
+---
+
+## RN-089 — Integridade da Avaliação
+
+Uma avaliação não poderá ser considerada concluída sem:
+
+* contexto organizacional;
+* identificação do perigo;
+* descrição do risco/evento;
+* classificação;
+* responsáveis quando aplicável.
+
+Os campos exatos serão refinados nos critérios de aceitação.
+
+---
+
+# 7. Regras de Negócio — PGR
+
+Agora começamos a entrar no núcleo do produto.
+
+---
+
+## RN-111 — PGR como Entidade Versionável
+
+O PGR deverá possuir ciclo de vida e versionamento.
+
+```text
+RASCUNHO
+   │
+   ▼
+EM REVISÃO
+   │
+   ▼
+APROVADO
+   │
+   ▼
+VIGENTE
+   │
+   ▼
+ARQUIVADO
+```
+
+---
+
+## RN-112 — Um PGR Vigente por Escopo
+
+O sistema deverá controlar a existência de programas vigentes considerando seu escopo organizacional.
+
+A regra exata será refinada conforme a estratégia de gestão adotada pela empresa.
+
+---
+
+## RN-113 — Inventário de Riscos
+
+O Inventário de Riscos deverá ser composto por riscos contextualizados e avaliados.
+
+Não deverá ser simplesmente uma lista textual.
+
+Estrutura conceitual:
+
+```text
+INVENTÁRIO
+│
+├── Perigo
+├── Evento/Risco
+├── Fonte
+├── Expostos
+├── Avaliação
+├── Classificação
+└── Controles
+```
+
+---
+
+## RN-114 — Plano de Ação
+
+Uma ação deverá possuir obrigatoriamente:
+
+* descrição;
+* responsável;
+* status;
+* prazo quando aplicável.
+
+---
+
+## RN-115 — Responsabilidade
+
+Um plano de ação poderá possuir responsável individual ou organizacional, conforme configuração futura.
+
+---
+
+## RN-116 — Status da Ação
+
+Uma ação deverá possuir ciclo de vida controlado.
+
+```text
+PENDENTE
+   │
+   ▼
+EM_ANDAMENTO
+   │
+   ├────► CANCELADA
+   │
+   ▼
+CONCLUÍDA
+```
+
+---
+
+## RN-117 — Ação Atrasada
+
+O status `ATRASADA` poderá ser determinado automaticamente quando:
+
+```text
+DATA_ATUAL > PRAZO
+```
+
+e a ação ainda não estiver concluída ou cancelada.
+
+---
+
+## RN-118 — Alteração de PGR Vigente
+
+Alterações relevantes em um PGR vigente deverão ser rastreáveis.
+
+A plataforma não deverá simplesmente sobrescrever informações críticas sem manter histórico.
+
+---
+
+## RN-119 — Aprovação
+
+Programas que exigirem aprovação deverão possuir:
+
+* responsável;
+* data;
+* versão;
+* registro da aprovação.
+
+---
+
+## RN-120 — Rastreabilidade
+
+O sistema deverá permitir identificar a origem das informações utilizadas na geração de um PGR.
+
+Exemplo:
+
+```text
+DOCUMENTO PGR
+      │
+      ├── Riscos
+      ├── Avaliações
+      ├── Medidas
+      └── Plano de Ação
+```
+
+Isso será fundamental para auditoria e gestão documental.
+
+---
+
+# 8. Regras de Negócio — Gestão Documental
+
+Este módulo será transversal.
+
+---
+
+## RN-141 — Documento como Entidade
+
+Documentos deverão possuir metadados próprios.
+
+Exemplo:
+
+```text
+DOCUMENTO
+
+ID
+Tipo
+Título
+Versão
+Status
+Data
+Validade
+Responsável
+```
+
+---
+
+## RN-142 — Arquivo não é Documento
+
+Um conceito importante:
+
+```text
+DOCUMENTO ≠ ARQUIVO
+```
+
+Um documento poderá possuir:
+
+* versão;
+* status;
+* metadados;
+* workflow.
+
+Enquanto o arquivo representa o objeto físico armazenado.
+
+Arquitetura conceitual:
+
+```text
+DOCUMENT
+    │
+    ├── METADATA
+    │
+    └── FILE
+          │
+          ▼
+      OBJECT STORAGE
+```
+
+---
+
+## RN-143 — Versionamento
+
+A criação de uma nova versão não deverá apagar a versão anterior.
+
+```text
+PGR
+│
+├── v1
+├── v2
+└── v3
+```
+
+---
+
+## RN-144 — Documento Vigente
+
+Um documento poderá possuir apenas uma versão vigente dentro do mesmo contexto definido.
+
+---
+
+## RN-145 — Exclusão Lógica
+
+Documentos com relevância histórica não deverão ser removidos fisicamente sem regras específicas de retenção.
+
+---
+
+## RN-146 — Controle de Acesso
+
+O acesso a documentos deverá respeitar:
+
+* tenant;
+* permissões;
+* escopo organizacional;
+* classificação da informação.
+
+---
+
+## RN-147 — Documento Gerado
+
+Documentos gerados automaticamente deverão possuir rastreabilidade de origem.
+
+Exemplo:
+
+```text
+PGR.pdf
+   │
+   ▼
+Gerado em:
+10/09/2026
+
+Versão:
+2.0
+
+Origem:
+PGR-001
+```
+
+---
+
+## RN-148 — Imutabilidade da Versão
+
+Após aprovação, uma versão documental não deverá ser alterada diretamente.
+
+Qualquer alteração deverá gerar:
+
+```text
+NOVA VERSÃO
+```
+
+---
+
+# 9. Regras de Negócio — Auditoria
+
+---
+
+## RN-161 — Eventos Auditáveis
+
+O sistema deverá registrar eventos críticos.
+
+Exemplos:
+
+* login;
+* criação;
+* alteração;
+* exclusão lógica;
+* aprovação;
+* geração documental;
+* download de documento sensível.
+
+---
+
+## RN-162 — Integridade da Auditoria
+
+Registros de auditoria não deverão ser alterados por usuários operacionais.
+
+---
+
+## RN-163 — Contexto do Evento
+
+Um evento auditável deverá registrar, quando disponível:
+
+```text
+QUEM
+QUANDO
+ONDE
+O QUÊ
+RESULTADO
+```
+
+Exemplo:
+
+```text
+Usuário: 123
+Data: 08/09/2026
+Ação: UPDATE
+Recurso: PGR
+ID: 456
+Resultado: SUCCESS
+```
+
+---
+
+# 10. Regras de Negócio — Dados Sensíveis
+
+Este ponto será extremamente importante quando chegarmos ao módulo de Saúde.
+
+---
+
+## RN-170 — Classificação da Informação
+
+O sistema deverá permitir classificar informações conforme seu nível de sensibilidade.
+
+Exemplo:
+
+```text
+NÍVEL 1
+INTERNO
+
+NÍVEL 2
+RESTRITO
+
+NÍVEL 3
+SENSÍVEL
+```
+
+---
+
+## RN-171 — Acesso Restrito
+
+Dados classificados como sensíveis deverão exigir permissões específicas.
+
+---
+
+## RN-172 — Auditoria Reforçada
+
+O acesso a dados sensíveis deverá gerar eventos de auditoria.
+
+---
+
+# 11. Uma decisão arquitetural importante
+
+Observe que estamos evitando regras como:
+
+```javascript
+if (user.role === 'ADMIN') {
+   // tudo permitido
+}
+```
+
+Isso se torna um problema rapidamente.
+
+Nossa regra será baseada em:
+
+```text
+IDENTIDADE
+    │
+    ▼
+PERMISSÕES
+    │
+    ▼
+ESCOPO
+    │
+    ▼
+POLICY
+    │
+    ▼
+RECURSO
+```
+
+Isso permitirá futuramente implementar algo próximo de:
+
+* RBAC — Role-Based Access Control;
+* Scope-Based Access Control;
+* políticas de autorização;
+* eventualmente ABAC.
+
+---
+
+# 12. Mapa das Regras de Negócio
+
+Neste momento temos:
+
+| Domínio         | Regras          |
+| --------------- | --------------- |
+| Multi-tenancy   | RN-001 a RN-004 |
+| IAM             | RN-021 a RN-027 |
+| Organização     | RN-041 a RN-046 |
+| Trabalhadores   | RN-061 a RN-066 |
+| Riscos          | RN-081 a RN-089 |
+| PGR             | RN-111 a RN-120 |
+| Documentos      | RN-141 a RN-148 |
+| Auditoria       | RN-161 a RN-163 |
+| Dados Sensíveis | RN-170 a RN-172 |
+
+---
+
+# 13. Relação entre Requisitos e Regras
+
+Agora começamos a construir a rastreabilidade.
+
+Exemplo:
+
+| Requisito                       | Regra relacionada      |
+| ------------------------------- | ---------------------- |
+| RF-051 — Cadastrar Trabalhador  | RN-061                 |
+| RF-053 — Histórico Profissional | RN-062                 |
+| RF-077 — Avaliação de Risco     | RN-084, RN-085, RN-086 |
+| RF-101 — Criar PGR              | RN-111                 |
+| RF-105 — Plano de Ação          | RN-114 a RN-117        |
+| RF-154 — Versionamento          | RN-143, RN-148         |
+| RF-191 — Auditoria              | RN-161 a RN-163        |
+
+Essa matriz será expandida posteriormente.
+
+---
+
+# Resultado da Etapa 6
+
+Agora temos formalmente três camadas importantes da engenharia do produto:
+
+```text
+VISÃO
+   │
+   ▼
+REQUISITOS FUNCIONAIS
+   │
+   ▼
+REGRAS DE NEGÓCIO
+   │
+   ▼
+COMPORTAMENTO DO DOMÍNIO
+```
+
+E isso será essencial para a próxima etapa.
+
+---
+
+# STATUS ATUAL DO PROJETO
+
+| Etapa                         | Status    |
+| ----------------------------- | --------- |
+| 1. Visão do Produto           | ✅         |
+| 2. Stakeholders e Personas    | ✅         |
+| 3. Escopo do Sistema          | ✅         |
+| 4. Requisitos Funcionais      | ✅         |
+| 5. Requisitos Não Funcionais  | ✅         |
+| **6. Regras de Negócio**      | ✅         |
+| **7. Casos de Uso**           | ⏳ Próxima |
+| 8. Product Backlog            | ⏳         |
+| 9. Critérios de Aceitação     | ⏳         |
+| 10. Matriz de Rastreabilidade | ⏳         |
+
+# Próxima etapa — ETAPA 7: CASOS DE USO
+
+Agora vamos sair da visão abstrata e modelar **como os atores realmente interagem com o sistema**.
+
+Começaremos pelos casos de uso fundamentais:
+
+```text
+UC-001 — Autenticar Usuário
+UC-002 — Gerenciar Tenant
+UC-003 — Gerenciar Usuários
+UC-004 — Gerenciar Empresa
+UC-005 — Gerenciar Estabelecimento
+UC-006 — Gerenciar Setor
+UC-007 — Gerenciar Trabalhador
+UC-008 — Gerenciar Perigos
+UC-009 — Avaliar Riscos
+UC-010 — Gerenciar PGR
+```
+
+A partir daqui, começaremos a enxergar o sistema como fluxos operacionais completos, preparando a base para **diagramas UML, APIs, banco de dados e Product Backlog**.
