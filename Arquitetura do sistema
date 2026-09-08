@@ -1,0 +1,818 @@
+# ADR-001 — Decisão Arquitetural e Tecnológica
+
+**Projeto:** SST360 — Plataforma de Gestão Integrada de Saúde e Segurança do Trabalho
+**Status:** Aceito
+**Data:** Setembro de 2026
+**Versão:** 1.0
+
+---
+
+## 1. Contexto
+
+O SST360 será desenvolvido como uma plataforma SaaS destinada à gestão integrada de processos de Saúde e Segurança do Trabalho.
+
+O sistema deverá administrar informações relacionadas a:
+
+* empresas;
+* estabelecimentos;
+* setores;
+* cargos e funções;
+* trabalhadores;
+* perigos e riscos ocupacionais;
+* avaliações de riscos;
+* medidas de controle;
+* GRO/PGR;
+* PCMSO;
+* exames ocupacionais;
+* CIPA;
+* EPI;
+* treinamentos;
+* acidentes e incidentes;
+* documentos;
+* indicadores;
+* conformidade;
+* notificações;
+* auditoria;
+* integrações futuras.
+
+A aplicação possui características que exigem uma arquitetura estruturada:
+
+* multi-tenancy;
+* controle granular de acesso;
+* grande quantidade de formulários e processos;
+* relacionamentos complexos entre entidades;
+* histórico e versionamento;
+* geração de documentos;
+* auditoria;
+* tratamento de informações sensíveis;
+* processamento assíncrono;
+* dashboards e indicadores;
+* possibilidade de crescimento para uma plataforma SaaS comercial.
+
+---
+
+# 2. Decisão
+
+O SST360 será desenvolvido utilizando **Laravel como framework principal da aplicação**, com **PHP** como linguagem de programação e **MySQL** como banco de dados.
+
+A arquitetura inicial será um **Monólito Modular**, organizado por domínios de negócio.
+
+A interface será inicialmente desenvolvida utilizando:
+
+* Laravel Blade;
+* Livewire;
+* Alpine.js.
+
+A infraestrutura utilizará:
+
+* Docker;
+* Nginx;
+* Redis;
+* Laravel Queue;
+* armazenamento de arquivos compatível com S3 ou MinIO;
+* GitHub Actions para CI/CD.
+
+---
+
+# 3. Stack tecnológica oficial
+
+| Camada             | Tecnologia                   |
+| ------------------ | ---------------------------- |
+| Linguagem          | PHP                          |
+| Framework          | Laravel                      |
+| Front-end          | Blade + Livewire + Alpine.js |
+| Banco de dados     | MySQL                        |
+| ORM                | Eloquent                     |
+| Cache              | Redis                        |
+| Filas              | Laravel Queue + Redis        |
+| Arquivos           | S3 / MinIO                   |
+| API                | Laravel REST API             |
+| Documentação API   | OpenAPI / Swagger            |
+| Autenticação       | Laravel Auth / Fortify       |
+| API Authentication | Sanctum                      |
+| Testes             | Pest / PHPUnit               |
+| Testes E2E         | Playwright                   |
+| Containers         | Docker                       |
+| Web Server         | Nginx                        |
+| CI/CD              | GitHub Actions               |
+| Controle de versão | Git + GitHub                 |
+
+As versões exatas das tecnologias serão definidas no momento do setup do projeto, utilizando versões oficialmente suportadas e adequadas ao ambiente de produção.
+
+---
+
+# 4. Arquitetura da aplicação
+
+A aplicação adotará o padrão:
+
+**Modular Monolith + Domain-Oriented Architecture**
+
+A aplicação será inicialmente um único sistema Laravel, porém organizada internamente em módulos independentes.
+
+Estrutura conceitual:
+
+```text
+Laravel
+│
+├── IAM
+│
+├── Tenancy
+│
+├── Organização
+│   ├── Empresas
+│   ├── Estabelecimentos
+│   ├── Setores
+│   ├── Cargos
+│   └── Funções
+│
+├── Trabalhadores
+│
+├── Perigos e Riscos
+│
+├── GRO / PGR
+│
+├── Saúde Ocupacional
+│   └── PCMSO
+│
+├── CIPA
+│
+├── EPI
+│
+├── Treinamentos
+│
+├── Acidentes e Incidentes
+│
+├── Documentos
+│
+├── Compliance
+│
+├── Indicadores
+│
+├── Notificações
+│
+└── Auditoria
+```
+
+---
+
+# 5. Responsabilidades das camadas
+
+O código não deverá concentrar regras de negócio nos Controllers.
+
+Será adotada a seguinte separação conceitual:
+
+```text
+HTTP Request
+     │
+     ▼
+Controller
+     │
+     ▼
+Application Service / Use Case
+     │
+     ▼
+Domain Rules
+     │
+     ▼
+Eloquent / Repository quando necessário
+     │
+     ▼
+MySQL
+```
+
+### Controllers
+
+Responsáveis principalmente por:
+
+* receber requisições;
+* validar entrada através de Requests;
+* chamar casos de uso;
+* retornar respostas.
+
+Controllers não deverão concentrar regras complexas de negócio.
+
+### Application Services / Use Cases
+
+Responsáveis por representar operações do sistema.
+
+Exemplos:
+
+```text
+CriarEmpresa
+CadastrarTrabalhador
+AvaliarRisco
+CriarInventarioRiscos
+CriarPlanoDeAcao
+AprovarPGR
+GerarDocumento
+RegistrarTreinamento
+RegistrarAcidente
+```
+
+### Domain Rules
+
+Conterão regras específicas do negócio SST.
+
+Exemplo:
+
+```text
+Um PGR aprovado não pode ser alterado diretamente.
+Uma nova alteração deve gerar uma nova versão.
+```
+
+### Policies
+
+Responsáveis por autorização contextual.
+
+Exemplo:
+
+```text
+Usuário pode visualizar este trabalhador?
+Usuário pode alterar este PGR?
+Usuário pode aprovar este documento?
+```
+
+---
+
+# 6. Estratégia Multi-Tenant
+
+O SST360 será concebido desde o início como SaaS multi-tenant.
+
+A estratégia inicial será:
+
+**Database compartilhado + Schema compartilhado + tenant_id.**
+
+Exemplo:
+
+```text
+tenants
+companies
+establishments
+sectors
+workers
+risks
+pgrs
+documents
+...
+```
+
+As entidades pertencentes a uma organização deverão possuir vínculo com o tenant correspondente, direta ou indiretamente.
+
+Exemplo:
+
+```text
+Tenant
+  │
+  └── Empresa
+       │
+       └── Estabelecimento
+            │
+            └── Setor
+                 │
+                 └── Trabalhador
+```
+
+O isolamento será implementado através de:
+
+* contexto do tenant;
+* Policies;
+* autorização;
+* filtros obrigatórios;
+* serviços de aplicação;
+* testes automatizados de isolamento;
+* auditoria.
+
+**Regra crítica:**
+
+> Uma requisição autenticada em um tenant jamais poderá acessar dados pertencentes a outro tenant.
+
+A arquitetura poderá futuramente evoluir para database-per-tenant caso requisitos de escala, isolamento ou compliance justifiquem essa mudança.
+
+---
+
+# 7. Banco de dados
+
+O banco oficial será:
+
+**MySQL**
+
+O acesso será realizado prioritariamente através do:
+
+**Laravel Eloquent ORM**
+
+O banco deverá preservar:
+
+* integridade referencial;
+* foreign keys;
+* índices;
+* constraints;
+* timestamps;
+* histórico quando necessário;
+* soft deletion quando aplicável;
+* identificação do tenant;
+* auditoria de operações críticas.
+
+O modelo físico será desenvolvido posteriormente na FASE 4 — Arquitetura de Dados.
+
+---
+
+# 8. Autenticação e autorização
+
+A autenticação será responsabilidade do Laravel.
+
+O modelo de autorização seguirá:
+
+```text
+USER
+  │
+  ▼
+TENANT
+  │
+  ▼
+ROLE
+  │
+  ▼
+PERMISSION
+  │
+  ▼
+SCOPE
+```
+
+Exemplos de permissões:
+
+```text
+PGR_VIEW
+PGR_CREATE
+PGR_EDIT
+PGR_APPROVE
+PGR_EXPORT
+
+WORKER_VIEW
+WORKER_CREATE
+WORKER_EDIT
+
+DOCUMENT_VIEW
+DOCUMENT_UPLOAD
+DOCUMENT_APPROVE
+DOCUMENT_DOWNLOAD
+```
+
+Os escopos poderão considerar:
+
+```text
+Tenant
+Empresa
+Estabelecimento
+Setor
+```
+
+O sistema deverá permitir segregação de funções para operações críticas.
+
+---
+
+# 9. Interface do usuário
+
+A primeira versão utilizará:
+
+### Blade
+
+Para estrutura das páginas e renderização do Laravel.
+
+### Livewire
+
+Para interfaces interativas sem a necessidade inicial de construir uma SPA completa.
+
+Será utilizado especialmente para:
+
+* formulários;
+* tabelas;
+* filtros;
+* pesquisas;
+* modais;
+* dashboards;
+* processos administrativos;
+* workflows;
+* CRUDs complexos.
+
+### Alpine.js
+
+Para pequenas interações no navegador.
+
+A decisão evita adicionar inicialmente um framework SPA separado.
+
+Caso futuramente determinado módulo exija uma interface altamente interativa, poderá ser introduzido Vue ou React de forma pontual.
+
+---
+
+# 10. Gestão de documentos
+
+O SST360 não deverá armazenar arquivos grandes diretamente no MySQL.
+
+O banco armazenará os metadados.
+
+Exemplo:
+
+```text
+documents
+│
+├── id
+├── tenant_id
+├── document_type
+├── title
+├── status
+├── current_version_id
+└── ...
+```
+
+O arquivo físico será armazenado em:
+
+```text
+S3 / MinIO
+```
+
+Arquitetura:
+
+```text
+Laravel
+   │
+   ├── Metadados ──────► MySQL
+   │
+   └── Arquivo ────────► Object Storage
+```
+
+Isso será utilizado para:
+
+* PGR;
+* PCMSO;
+* LTCAT;
+* ASO;
+* certificados;
+* documentos da CIPA;
+* relatórios;
+* evidências;
+* anexos;
+* documentos gerados pelo sistema.
+
+---
+
+# 11. Geração de documentos
+
+O sistema deverá possuir um mecanismo de geração documental.
+
+Fluxo:
+
+```text
+Dados estruturados
+       │
+       ▼
+Template
+       │
+       ▼
+Processamento Laravel
+       │
+       ▼
+Documento
+       │
+       ▼
+PDF
+       │
+       ▼
+Armazenamento
+       │
+       ▼
+Versionamento + Auditoria
+```
+
+A tecnologia definitiva para geração de PDF será definida durante a implementação do módulo documental.
+
+---
+
+# 12. Filas e processamento assíncrono
+
+Processamentos demorados não deverão bloquear a requisição HTTP.
+
+Exemplos:
+
+* geração de PDF;
+* processamento de documentos;
+* envio de notificações;
+* geração de relatórios;
+* processamento de indicadores;
+* tarefas de manutenção;
+* futuras integrações.
+
+Arquitetura:
+
+```text
+Laravel
+   │
+   ▼
+Queue
+   │
+   ▼
+Redis
+   │
+   ▼
+Worker
+```
+
+---
+
+# 13. API
+
+O Laravel também será responsável pela API do SST360.
+
+A API deverá permitir futuramente:
+
+* integração com sistemas corporativos;
+* integrações com RH;
+* integrações com sistemas de saúde ocupacional;
+* integrações com plataformas externas;
+* aplicativos móveis;
+* integrações relacionadas ao eSocial;
+* automações.
+
+A API seguirá princípios REST e deverá possuir documentação através de OpenAPI/Swagger.
+
+---
+
+# 14. Segurança
+
+A segurança será tratada como requisito arquitetural.
+
+O sistema deverá contemplar:
+
+* HTTPS;
+* hashing seguro de senhas;
+* autorização baseada em permissões;
+* isolamento de tenants;
+* proteção contra SQL Injection;
+* proteção contra XSS;
+* proteção contra CSRF;
+* rate limiting;
+* validação de entrada;
+* controle de sessão;
+* auditoria;
+* logs;
+* controle de acesso aos documentos;
+* proteção de arquivos;
+* backups;
+* recuperação de desastre;
+* MFA em evolução futura.
+
+Informações classificadas como sensíveis deverão possuir controles adicionais de acesso e auditoria.
+
+---
+
+# 15. Infraestrutura
+
+Ambiente inicial:
+
+```text
+Internet
+   │
+   ▼
+Nginx
+   │
+   ▼
+Laravel
+   │
+   ├── MySQL
+   ├── Redis
+   └── Object Storage
+```
+
+Os ambientes serão separados:
+
+```text
+Development
+     │
+     ▼
+Staging
+     │
+     ▼
+Production
+```
+
+Docker será utilizado para padronização dos ambientes.
+
+---
+
+# 16. Testes
+
+A estratégia de testes será composta por:
+
+### Unitários
+
+Testar regras isoladas.
+
+### Integração
+
+Testar interação entre componentes.
+
+### Feature
+
+Testar funcionalidades completas do Laravel.
+
+### E2E
+
+Testar fluxos reais através da interface.
+
+Exemplo:
+
+```text
+Login
+ ↓
+Selecionar empresa
+ ↓
+Cadastrar trabalhador
+ ↓
+Cadastrar perigo
+ ↓
+Avaliar risco
+ ↓
+Criar ação
+ ↓
+Gerar PGR
+```
+
+---
+
+# 17. Observabilidade
+
+O sistema deverá possuir:
+
+* logs estruturados;
+* registro de erros;
+* monitoramento;
+* métricas;
+* acompanhamento de filas;
+* auditoria de operações críticas.
+
+O objetivo é permitir identificar:
+
+```text
+Quem?
+Quando?
+Onde?
+O quê?
+Qual resultado?
+Qual entidade?
+Qual tenant?
+```
+
+---
+
+# 18. CI/CD
+
+O pipeline deverá futuramente executar:
+
+```text
+Git Push
+   │
+   ▼
+CI
+   │
+   ├── Lint
+   ├── Testes
+   ├── Análise
+   ├── Build
+   └── Segurança
+        │
+        ▼
+      Deploy
+        │
+        ▼
+    Staging
+        │
+        ▼
+   Production
+```
+
+GitHub será utilizado como plataforma inicial de versionamento e automação.
+
+---
+
+# 19. Tecnologias descartadas
+
+## WordPress
+
+Descartado como parte da aplicação.
+
+Motivo:
+
+O SST360 não necessita de um CMS separado para seu núcleo operacional.
+
+## Node.js / NestJS
+
+Descartado como backend principal.
+
+Motivo:
+
+A adoção do Laravel simplifica a arquitetura e concentra:
+
+* backend;
+* autenticação;
+* ORM;
+* filas;
+* autorização;
+* validação;
+* API;
+* comandos;
+* jobs;
+* migrations;
+* testes.
+
+## React / Next.js
+
+Não serão utilizados inicialmente.
+
+Motivo:
+
+O SST360 possui forte predominância de:
+
+* formulários;
+* CRUDs;
+* tabelas;
+* workflows;
+* dashboards;
+* processos administrativos.
+
+Blade + Livewire atende adequadamente essa primeira arquitetura.
+
+React/Vue poderão ser avaliados posteriormente para módulos específicos.
+
+---
+
+# 20. Atualização dos requisitos não funcionais
+
+O requisito anteriormente definido relacionado à tecnologia deverá ser atualizado.
+
+### RNF-091 — Stack de Desenvolvimento
+
+O sistema deverá utilizar PHP e Laravel como tecnologias principais de desenvolvimento do backend, seguindo versões oficialmente suportadas e padrões estabelecidos para qualidade, segurança e manutenção do código.
+
+O requisito anterior relacionado ao TypeScript fica **revogado**, pois pertencia à arquitetura tecnológica anterior.
+
+---
+
+# 21. Princípio arquitetural principal
+
+O SST360 deverá seguir o princípio:
+
+> **Complexidade de negócio não deve significar complexidade desnecessária de infraestrutura.**
+
+Por isso, a primeira versão será construída como um **Monólito Modular Laravel**.
+
+Microserviços, Kubernetes e arquiteturas distribuídas somente serão introduzidos caso exista justificativa técnica concreta.
+
+---
+
+# 22. Decisões futuras
+
+Ainda deverão ser definidas durante as próximas fases:
+
+1. versão exata do Laravel;
+2. versão exata do PHP;
+3. estratégia definitiva de tenancy;
+4. estrutura definitiva de RBAC;
+5. mecanismo de permissões;
+6. biblioteca definitiva para PDF;
+7. provedor de Object Storage;
+8. biblioteca de componentes visuais;
+9. estratégia definitiva de monitoramento;
+10. estratégia de backup;
+11. infraestrutura de produção;
+12. política de retenção documental;
+13. estratégia de integração com eSocial;
+14. arquitetura definitiva da API.
+
+---
+
+# 23. Resultado da decisão
+
+A arquitetura tecnológica oficial do SST360 passa a ser:
+
+```text
+                 SST360
+                   │
+          ┌────────┴────────┐
+          │                 │
+       Laravel            MySQL
+          │
+   ┌──────┼───────────────┐
+   │      │       │       │
+ Blade  Livewire  Redis  Storage
+   │      │       │       │
+   └──────┴───────┴───────┘
+          │
+       Docker
+          │
+        Nginx
+          │
+      GitHub CI/CD
+```
+
+**Decisão final:**
+
+> O SST360 será desenvolvido exclusivamente com Laravel como framework principal, PHP como linguagem, MySQL como banco de dados e Blade + Livewire + Alpine.js como camada inicial de interface. A aplicação adotará arquitetura de Monólito Modular, preparada para evolução futura sem introduzir complexidade distribuída prematuramente.
