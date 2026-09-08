@@ -1,0 +1,1037 @@
+Perfeito. Agora entramos em uma das etapas mais importantes do projeto.
+
+# FASE 1 — ENGENHARIA DE REQUISITOS
+
+# ETAPA 4 — REQUISITOS FUNCIONAIS
+
+Os requisitos funcionais definirão **o que o sistema deve fazer**.
+
+Para manter rastreabilidade profissional, cada requisito terá:
+
+* ID;
+* nome;
+* descrição;
+* módulo;
+* prioridade;
+* versão/escopo.
+
+Vamos utilizar a seguinte classificação:
+
+| Prioridade | Significado                                           |
+| ---------- | ----------------------------------------------------- |
+| **MUST**   | Obrigatório para funcionamento do MVP                 |
+| **SHOULD** | Alta prioridade, mas pode entrar em release posterior |
+| **COULD**  | Funcionalidade futura                                 |
+| **FUTURE** | Fora do planejamento imediato                         |
+
+---
+
+# 1. Estrutura de identificação
+
+Utilizaremos identificadores únicos:
+
+```text
+RF-001
+RF-002
+RF-003
+...
+```
+
+E agruparemos os requisitos por domínio.
+
+```text
+RF-001 a RF-010 → Plataforma SaaS
+RF-011 a RF-030 → IAM
+RF-031 a RF-050 → Organização
+RF-051 a RF-070 → Trabalhadores
+RF-071 a RF-100 → Gestão de Riscos
+RF-101+ → PGR
+```
+
+Essa organização facilitará posteriormente a criação da:
+
+* matriz de rastreabilidade;
+* backlog;
+* casos de uso;
+* endpoints;
+* testes;
+* documentação da API.
+
+---
+
+# 2. M01 — PLATAFORMA SaaS E MULTI-TENANCY
+
+## RF-001 — Cadastro de Tenant
+
+**Descrição:**
+O sistema deve permitir o cadastro de tenants para representar organizações clientes da plataforma.
+
+**Prioridade:** MUST
+
+---
+
+## RF-002 — Isolamento de Dados
+
+O sistema deve associar os dados operacionais a um tenant, garantindo que usuários não autorizados não visualizem ou manipulem informações pertencentes a outra organização.
+
+**Prioridade:** MUST
+
+---
+
+## RF-003 — Administração Global
+
+O sistema deve permitir que o Super Administrador visualize e gerencie os tenants cadastrados na plataforma.
+
+**Prioridade:** MUST
+
+---
+
+## RF-004 — Status do Tenant
+
+O sistema deve permitir definir o status de um tenant.
+
+Status iniciais:
+
+```text
+ATIVO
+INATIVO
+SUSPENSO
+EM_TESTE
+```
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-005 — Configurações do Tenant
+
+O sistema deve permitir configurações específicas por tenant.
+
+Exemplos:
+
+* nome;
+* logotipo;
+* dados institucionais;
+* preferências;
+* configurações de notificações.
+
+**Prioridade:** SHOULD
+
+---
+
+# 3. M02 — IDENTIDADE E ACESSO (IAM)
+
+Este módulo será crítico porque toda a plataforma dependerá dele.
+
+---
+
+## RF-011 — Autenticação
+
+O sistema deve permitir que usuários autenticados acessem a plataforma mediante credenciais válidas.
+
+**Prioridade:** MUST
+
+---
+
+## RF-012 — Encerramento de Sessão
+
+O sistema deve permitir que o usuário encerre sua sessão de forma segura.
+
+**Prioridade:** MUST
+
+---
+
+## RF-013 — Recuperação de Credenciais
+
+O sistema deve permitir que o usuário solicite recuperação de senha.
+
+**Prioridade:** MUST
+
+---
+
+## RF-014 — Cadastro de Usuários
+
+O Administrador autorizado deve poder cadastrar usuários vinculados ao seu tenant.
+
+**Prioridade:** MUST
+
+---
+
+## RF-015 — Ativação e Desativação
+
+O sistema deve permitir ativar ou desativar usuários.
+
+**Prioridade:** MUST
+
+---
+
+## RF-016 — Perfis de Acesso
+
+O sistema deve permitir atribuir perfis aos usuários.
+
+Perfis iniciais:
+
+```text
+SUPER_ADMIN
+TENANT_ADMIN
+GESTOR_SST
+TECNICO_SST
+ENGENHEIRO_SST
+MEDICO_TRABALHO
+ENFERMEIRO_TRABALHO
+RH
+GESTOR
+CIPA
+AUDITOR
+TRABALHADOR
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-017 — Permissões
+
+O sistema deve controlar funcionalidades através de permissões.
+
+Exemplo:
+
+```text
+PGR_VIEW
+PGR_CREATE
+PGR_UPDATE
+PGR_DELETE
+PGR_APPROVE
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-018 — Controle por Escopo
+
+O sistema deve permitir restringir o acesso do usuário conforme seu escopo organizacional.
+
+Exemplos:
+
+* empresa;
+* estabelecimento;
+* setor.
+
+**Prioridade:** MUST
+
+---
+
+## RF-019 — Sessões Ativas
+
+O sistema deve permitir visualizar sessões ativas do usuário.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-020 — MFA
+
+O sistema deve permitir autenticação multifator.
+
+**Prioridade:** SHOULD
+
+---
+
+# 4. M03 — GESTÃO ORGANIZACIONAL
+
+Esse módulo representa a estrutura básica da empresa.
+
+---
+
+## RF-031 — Cadastro de Empresa
+
+O sistema deve permitir cadastrar empresas vinculadas a um tenant.
+
+Informações iniciais:
+
+* razão social;
+* nome fantasia;
+* CNPJ;
+* CNAE;
+* grau de risco;
+* endereço;
+* contatos.
+
+**Prioridade:** MUST
+
+---
+
+## RF-032 — Gestão de Estabelecimentos
+
+O sistema deve permitir cadastrar múltiplos estabelecimentos para uma empresa.
+
+**Prioridade:** MUST
+
+---
+
+## RF-033 — Cadastro de Setores
+
+O sistema deve permitir cadastrar setores vinculados aos estabelecimentos.
+
+Exemplos:
+
+```text
+ADMINISTRATIVO
+PRODUÇÃO
+MANUTENÇÃO
+LOGÍSTICA
+EXPEDIÇÃO
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-034 — Cadastro de Cargos
+
+O sistema deve permitir cadastrar cargos organizacionais.
+
+**Prioridade:** MUST
+
+---
+
+## RF-035 — Cadastro de Funções
+
+O sistema deve permitir cadastrar funções exercidas pelos trabalhadores.
+
+**Prioridade:** MUST
+
+---
+
+## RF-036 — Histórico Organizacional
+
+O sistema deve manter histórico das alterações na estrutura organizacional.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-037 — Status Organizacional
+
+O sistema deve permitir ativar ou inativar:
+
+* empresas;
+* estabelecimentos;
+* setores;
+* cargos;
+* funções.
+
+**Prioridade:** MUST
+
+---
+
+# 5. M04 — GESTÃO DE TRABALHADORES
+
+Este será um dos módulos centrais do produto.
+
+---
+
+## RF-051 — Cadastro de Trabalhador
+
+O sistema deve permitir cadastrar trabalhadores vinculados a uma empresa.
+
+Informações iniciais:
+
+* nome;
+* identificador interno;
+* CPF;
+* matrícula;
+* data de admissão;
+* vínculo;
+* situação.
+
+**Prioridade:** MUST
+
+---
+
+## RF-052 — Lotação Organizacional
+
+O sistema deve permitir vincular o trabalhador a:
+
+* estabelecimento;
+* setor;
+* cargo;
+* função.
+
+**Prioridade:** MUST
+
+---
+
+## RF-053 — Histórico Profissional
+
+O sistema deve manter histórico das movimentações profissionais do trabalhador.
+
+Exemplos:
+
+* admissão;
+* transferência;
+* alteração de setor;
+* alteração de função;
+* promoção;
+* desligamento.
+
+**Prioridade:** MUST
+
+---
+
+## RF-054 — Status do Trabalhador
+
+O sistema deve controlar a situação do trabalhador.
+
+```text
+ATIVO
+AFASTADO
+DESLIGADO
+INATIVO
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-055 — Dossiê Ocupacional
+
+O sistema deve disponibilizar um dossiê ocupacional consolidado do trabalhador.
+
+**Prioridade:** SHOULD
+
+O dossiê deverá futuramente consolidar:
+
+```text
+TRABALHADOR
+│
+├── Dados
+├── Histórico
+├── Riscos
+├── Exames
+├── ASOs
+├── EPIs
+├── Treinamentos
+├── Acidentes
+└── Documentos
+```
+
+---
+
+## RF-056 — Consulta de Trabalhadores
+
+O sistema deve permitir consultar trabalhadores utilizando filtros.
+
+Exemplos:
+
+* nome;
+* matrícula;
+* estabelecimento;
+* setor;
+* função;
+* status.
+
+**Prioridade:** MUST
+
+---
+
+# 6. M05 — GESTÃO DE PERIGOS E RISCOS
+
+Este módulo será o núcleo técnico do PGR e de outros programas.
+
+---
+
+## RF-071 — Cadastro de Perigos
+
+O sistema deve permitir cadastrar perigos ocupacionais.
+
+**Prioridade:** MUST
+
+---
+
+## RF-072 — Cadastro de Agentes de Risco
+
+O sistema deve permitir cadastrar agentes relacionados aos riscos ocupacionais.
+
+Categorias iniciais:
+
+```text
+FÍSICO
+QUÍMICO
+BIOLÓGICO
+ERGONÔMICO
+ACIDENTE
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-073 — Identificação de Riscos
+
+O sistema deve permitir identificar riscos associados a:
+
+* estabelecimento;
+* setor;
+* atividade;
+* função;
+* grupo de trabalhadores.
+
+**Prioridade:** MUST
+
+---
+
+## RF-074 — Descrição do Evento Perigoso
+
+O sistema deve permitir registrar a descrição do evento perigoso associado ao perigo identificado.
+
+**Prioridade:** MUST
+
+---
+
+## RF-075 — Fonte Geradora
+
+O sistema deve permitir registrar a fonte ou circunstância geradora do risco.
+
+**Prioridade:** MUST
+
+---
+
+## RF-076 — Grupo Exposto
+
+O sistema deve permitir identificar grupos ou trabalhadores expostos ao risco.
+
+**Prioridade:** MUST
+
+---
+
+## RF-077 — Avaliação de Risco
+
+O sistema deve permitir realizar avaliação de risco.
+
+A avaliação deverá considerar parâmetros configuráveis.
+
+Exemplo inicial:
+
+```text
+PROBABILIDADE
+      ×
+SEVERIDADE
+      =
+NÍVEL DE RISCO
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-078 — Matriz de Risco
+
+O sistema deve permitir configurar e utilizar matrizes de risco.
+
+**Prioridade:** MUST
+
+---
+
+## RF-079 — Classificação do Risco
+
+O sistema deve classificar os riscos conforme parâmetros definidos na matriz.
+
+Exemplo:
+
+```text
+BAIXO
+MÉDIO
+ALTO
+CRÍTICO
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-080 — Medidas de Controle
+
+O sistema deve permitir cadastrar medidas de prevenção e controle associadas aos riscos.
+
+**Prioridade:** MUST
+
+---
+
+## RF-081 — Hierarquia de Controles
+
+O sistema deve permitir classificar medidas conforme a hierarquia de controles.
+
+```text
+ELIMINAÇÃO
+SUBSTITUIÇÃO
+CONTROLES DE ENGENHARIA
+CONTROLES ADMINISTRATIVOS
+EPI
+```
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-082 — Avaliação Residual
+
+O sistema deve permitir registrar o risco residual após implementação das medidas de controle.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-083 — Histórico de Avaliações
+
+O sistema deve manter o histórico das avaliações realizadas.
+
+**Prioridade:** MUST
+
+---
+
+# 7. M06 — GRO / PGR
+
+O primeiro grande módulo regulatório do MVP.
+
+---
+
+## RF-101 — Criação de PGR
+
+O sistema deve permitir criar Programas de Gerenciamento de Riscos.
+
+**Prioridade:** MUST
+
+---
+
+## RF-102 — Associação Organizacional
+
+O sistema deve permitir vincular o PGR a:
+
+* empresa;
+* estabelecimento;
+* setores.
+
+**Prioridade:** MUST
+
+---
+
+## RF-103 — Inventário de Riscos
+
+O sistema deve permitir criar e manter o Inventário de Riscos associado ao PGR.
+
+**Prioridade:** MUST
+
+---
+
+## RF-104 — Associação de Riscos ao PGR
+
+O sistema deve permitir incluir riscos previamente cadastrados no Inventário de Riscos.
+
+**Prioridade:** MUST
+
+---
+
+## RF-105 — Plano de Ação
+
+O sistema deve permitir criar planos de ação associados aos riscos identificados.
+
+Cada ação deverá possuir:
+
+* descrição;
+* responsável;
+* prazo;
+* prioridade;
+* status.
+
+**Prioridade:** MUST
+
+---
+
+## RF-106 — Acompanhamento do Plano de Ação
+
+O sistema deve permitir acompanhar o andamento das ações.
+
+Status iniciais:
+
+```text
+PENDENTE
+EM_ANDAMENTO
+CONCLUÍDA
+ATRASADA
+CANCELADA
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-107 — Revisão do PGR
+
+O sistema deve permitir criar revisões do PGR preservando o histórico das versões anteriores.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-108 — Status do PGR
+
+O sistema deve controlar o ciclo de vida do programa.
+
+```text
+RASCUNHO
+EM_REVISÃO
+APROVADO
+VIGENTE
+ARQUIVADO
+```
+
+**Prioridade:** MUST
+
+---
+
+## RF-109 — Geração do Documento PGR
+
+O sistema deve permitir gerar um documento estruturado do PGR com base nos dados cadastrados.
+
+**Prioridade:** SHOULD
+
+---
+
+# 8. M12 — GESTÃO DOCUMENTAL
+
+Mesmo que inicialmente seja um módulo básico, precisamos especificar suas fundações desde o início.
+
+---
+
+## RF-151 — Upload de Documentos
+
+O sistema deve permitir anexar documentos aos registros da plataforma.
+
+**Prioridade:** MUST
+
+---
+
+## RF-152 — Classificação Documental
+
+O sistema deve permitir classificar documentos por tipo.
+
+Exemplos:
+
+* PGR;
+* PCMSO;
+* LTCAT;
+* certificado;
+* relatório;
+* evidência;
+* ata.
+
+**Prioridade:** MUST
+
+---
+
+## RF-153 — Vinculação Documental
+
+O sistema deve permitir vincular documentos a:
+
+* empresa;
+* estabelecimento;
+* setor;
+* trabalhador;
+* programa;
+* processo.
+
+**Prioridade:** MUST
+
+---
+
+## RF-154 — Controle de Versão
+
+O sistema deve manter versões dos documentos.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-155 — Controle de Validade
+
+O sistema deve permitir registrar datas de validade e revisão.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-156 — Controle de Acesso Documental
+
+O sistema deve restringir o acesso aos documentos conforme permissões do usuário.
+
+**Prioridade:** MUST
+
+---
+
+## RF-157 — Download
+
+O sistema deve permitir realizar download de documentos autorizados.
+
+**Prioridade:** MUST
+
+---
+
+# 9. M14 — NOTIFICAÇÕES
+
+---
+
+## RF-171 — Notificação Interna
+
+O sistema deve permitir gerar notificações internas.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-172 — Alertas de Vencimento
+
+O sistema deve gerar alertas para itens próximos do vencimento.
+
+Exemplos futuros:
+
+* PGR;
+* exames;
+* treinamentos;
+* certificados;
+* documentos.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-173 — Notificação por E-mail
+
+O sistema deve permitir o envio de notificações por e-mail.
+
+**Prioridade:** SHOULD
+
+---
+
+# 10. M15 — DASHBOARD E INDICADORES
+
+---
+
+## RF-181 — Dashboard Principal
+
+O sistema deve disponibilizar um dashboard conforme o perfil do usuário.
+
+**Prioridade:** MUST
+
+---
+
+## RF-182 — Indicadores de Pendências
+
+O sistema deve apresentar indicadores relacionados a pendências.
+
+**Prioridade:** MUST
+
+---
+
+## RF-183 — Indicadores de Risco
+
+O sistema deve apresentar indicadores relacionados aos riscos cadastrados.
+
+**Prioridade:** SHOULD
+
+---
+
+## RF-184 — Filtros
+
+O sistema deve permitir filtrar indicadores por:
+
+* empresa;
+* estabelecimento;
+* período;
+* setor.
+
+**Prioridade:** SHOULD
+
+---
+
+# 11. M16 — AUDITORIA
+
+Este módulo deve existir desde o MVP, e não ser adicionado posteriormente.
+
+---
+
+## RF-191 — Registro de Auditoria
+
+O sistema deve registrar eventos relevantes.
+
+Exemplos:
+
+* criação;
+* alteração;
+* exclusão;
+* login;
+* exportação;
+* download.
+
+**Prioridade:** MUST
+
+---
+
+## RF-192 — Identificação do Usuário
+
+Cada registro de auditoria deve identificar o usuário responsável pela ação quando aplicável.
+
+**Prioridade:** MUST
+
+---
+
+## RF-193 — Histórico de Alterações
+
+O sistema deve permitir consultar o histórico das alterações realizadas nos registros.
+
+**Prioridade:** MUST
+
+---
+
+## RF-194 — Consulta de Auditoria
+
+Usuários autorizados devem poder consultar os registros de auditoria conforme seu escopo.
+
+**Prioridade:** SHOULD
+
+---
+
+# 12. Módulos futuros — Requisitos reservados
+
+Para evitar poluir o documento inicial do MVP, manteremos os requisitos dos módulos avançados em documentos específicos.
+
+| Faixa   | Módulo                    |
+| ------- | ------------------------- |
+| RF-201+ | Saúde Ocupacional / PCMSO |
+| RF-251+ | EPI                       |
+| RF-301+ | Treinamentos              |
+| RF-351+ | CIPA / NR-05              |
+| RF-401+ | Acidentes                 |
+| RF-451+ | Compliance                |
+| RF-501+ | Integrações               |
+
+Isso mantém o sistema de documentação escalável.
+
+---
+
+# 13. Resumo quantitativo do MVP
+
+Até este momento, temos formalmente especificados os principais grupos:
+
+| Módulo            | Requisitos principais |
+| ----------------- | --------------------: |
+| Plataforma SaaS   |                     5 |
+| IAM               |                    10 |
+| Organização       |                     7 |
+| Trabalhadores     |                     6 |
+| Riscos            |                    13 |
+| PGR               |                     9 |
+| Gestão Documental |                     7 |
+| Notificações      |                     3 |
+| Dashboard         |                     4 |
+| Auditoria         |                     4 |
+
+### Total inicial especificado: **68 requisitos funcionais**
+
+Esse número provavelmente crescerá quando detalharmos os casos de uso, mas agora já temos uma **baseline funcional consistente para o MVP**.
+
+---
+
+# 14. Observação arquitetural importante
+
+Perceba que começamos a identificar uma cadeia clara:
+
+```text
+RF
+ │
+ ▼
+REGRA DE NEGÓCIO
+ │
+ ▼
+CASO DE USO
+ │
+ ▼
+USER STORY
+ │
+ ▼
+API
+ │
+ ▼
+BANCO DE DADOS
+ │
+ ▼
+TESTE
+```
+
+Exemplo:
+
+```text
+RF-051
+Cadastrar Trabalhador
+        │
+        ▼
+RN-XXX
+CPF único por empresa
+        │
+        ▼
+UC-XXX
+Cadastrar Trabalhador
+        │
+        ▼
+US-XXX
+Como RH...
+        │
+        ▼
+POST /workers
+        │
+        ▼
+Tabela workers
+        │
+        ▼
+Teste de integração
+```
+
+Essa rastreabilidade será extremamente importante para tratarmos o projeto como **produto profissional**, e não apenas como um projeto de código.
+
+---
+
+# STATUS ATUAL DO PROJETO
+
+| Etapa                              | Status |
+| ---------------------------------- | ------ |
+| 1. Visão do Produto                | ✅      |
+| 2. Stakeholders e Personas         | ✅      |
+| 3. Escopo do Sistema               | ✅      |
+| **4. Requisitos Funcionais — MVP** | ✅      |
+| 5. Requisitos Não Funcionais       | ⏳      |
+| 6. Regras de Negócio               | ⏳      |
+| 7. Casos de Uso                    | ⏳      |
+| 8. Product Backlog                 | ⏳      |
+| 9. Critérios de Aceitação          | ⏳      |
+| 10. Matriz de Rastreabilidade      | ⏳      |
+
+# Próxima etapa: ETAPA 5 — REQUISITOS NÃO FUNCIONAIS
+
+Esta próxima etapa será particularmente importante para este SaaS, porque vamos definir formalmente requisitos de:
+
+* arquitetura;
+* segurança;
+* LGPD;
+* desempenho;
+* escalabilidade;
+* disponibilidade;
+* backup;
+* recuperação;
+* auditoria;
+* observabilidade;
+* usabilidade;
+* compatibilidade;
+* manutenção.
+
+Aqui começaremos a definir os critérios técnicos que orientarão diretamente a arquitetura em **Node.js/NestJS + React/Next.js + PostgreSQL + Docker**.
