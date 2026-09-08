@@ -1,0 +1,989 @@
+Perfeito. Mantemos a arquitetura originalmente definida, sem WordPress:
+
+### Stack base do SST360
+
+```text
+FRONT-END
+Next.js + React + TypeScript
+        │
+        ▼
+BACK-END
+Node.js + NestJS + TypeScript
+        │
+        ▼
+DADOS
+PostgreSQL + Prisma
+        │
+        ├── Redis
+        ├── MinIO/S3
+        └── Filas assíncronas
+```
+
+A decisão é adequada para o nível de complexidade que projetamos. Vamos continuar com uma **aplicação SaaS dedicada, modular e escalável**, iniciando como **Monólito Modular**.
+
+Retomamos exatamente de onde paramos.
+
+---
+
+# FASE 1 — ENGENHARIA DE REQUISITOS
+
+# ETAPA 5 — REQUISITOS NÃO FUNCIONAIS
+
+Até agora definimos **o que o sistema deve fazer**.
+
+Agora definiremos **como o sistema deve se comportar**.
+
+Os Requisitos Não Funcionais serão fundamentais para orientar decisões sobre:
+
+* arquitetura;
+* segurança;
+* desempenho;
+* disponibilidade;
+* escalabilidade;
+* privacidade;
+* qualidade;
+* manutenção;
+* infraestrutura.
+
+Utilizaremos a identificação:
+
+```text
+RNF-001
+RNF-002
+RNF-003
+...
+```
+
+---
+
+# 1. Segurança
+
+Como a plataforma manipulará informações empresariais e dados pessoais de trabalhadores, segurança será um requisito estrutural.
+
+## RNF-001 — Autenticação Segura
+
+O sistema deve exigir autenticação para acesso às áreas protegidas da plataforma.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-002 — Autorização
+
+O sistema deve controlar o acesso às funcionalidades através de permissões.
+
+O acesso não deverá ser controlado apenas pelo perfil do usuário.
+
+Modelo:
+
+```text
+USUÁRIO
+   ↓
+ROLE
+   ↓
+PERMISSIONS
+   ↓
+SCOPE
+   ↓
+RECURSO
+```
+
+**Prioridade:** MUST
+
+---
+
+## RNF-003 — Princípio do Menor Privilégio
+
+Os usuários devem possuir apenas as permissões necessárias para execução de suas atividades.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-004 — Isolamento entre Tenants
+
+Os dados de um tenant não poderão ser acessados por usuários pertencentes a outro tenant.
+
+**Prioridade:** MUST
+
+Este será um dos requisitos arquiteturais mais críticos da plataforma.
+
+---
+
+## RNF-005 — Criptografia em Trânsito
+
+A comunicação entre cliente e servidor deverá utilizar HTTPS/TLS.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-006 — Proteção de Credenciais
+
+As senhas não poderão ser armazenadas em texto puro.
+
+Deverão ser utilizadas técnicas seguras de hash de senha.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-007 — Proteção contra Ataques Comuns
+
+A aplicação deverá implementar mecanismos de proteção contra vulnerabilidades comuns, incluindo:
+
+* SQL Injection;
+* XSS;
+* CSRF quando aplicável;
+* ataques de força bruta;
+* enumeração de usuários;
+* acesso indevido a recursos;
+* manipulação de tokens.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-008 — Rate Limiting
+
+Endpoints críticos deverão possuir limitação de requisições.
+
+Exemplos:
+
+* login;
+* recuperação de senha;
+* APIs públicas;
+* upload.
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-009 — MFA
+
+A arquitetura deverá estar preparada para autenticação multifator.
+
+**Prioridade:** SHOULD
+
+---
+
+# 2. Privacidade e Proteção de Dados
+
+Este tópico é especialmente relevante para SST.
+
+A plataforma poderá manipular dados como:
+
+* identificação de trabalhadores;
+* documentos;
+* informações profissionais;
+* dados ocupacionais.
+
+Posteriormente, módulos de saúde poderão envolver dados pessoais sensíveis.
+
+---
+
+## RNF-010 — Privacidade por Design
+
+A aplicação deverá considerar princípios de privacidade desde a concepção da arquitetura.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-011 — Minimização de Dados
+
+O sistema deverá coletar apenas os dados necessários para execução das funcionalidades.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-012 — Controle de Dados Sensíveis
+
+Informações sensíveis deverão possuir controles adicionais de acesso.
+
+**Prioridade:** MUST
+
+Exemplo conceitual:
+
+```text
+DADO
+ │
+ ├── Público interno
+ │
+ ├── Restrito
+ │
+ └── Sensível
+        │
+        ├── Permissão especial
+        ├── Auditoria reforçada
+        └── Acesso controlado
+```
+
+---
+
+## RNF-013 — Rastreabilidade de Acesso
+
+O acesso a informações sensíveis deverá ser auditável.
+
+**Prioridade:** MUST
+
+---
+
+# 3. Desempenho
+
+A experiência do usuário será importante, especialmente em empresas com grande quantidade de trabalhadores.
+
+---
+
+## RNF-020 — Tempo de Resposta
+
+Operações comuns de consulta deverão apresentar resposta rápida em condições normais de operação.
+
+Como meta inicial de engenharia:
+
+* consultas simples: preferencialmente abaixo de 500 ms;
+* consultas complexas: preferencialmente abaixo de 2 segundos.
+
+Essas métricas poderão ser refinadas posteriormente.
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-021 — Paginação
+
+Listagens de grandes volumes de dados deverão utilizar paginação.
+
+Exemplos:
+
+* trabalhadores;
+* riscos;
+* documentos;
+* logs;
+* auditoria.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-022 — Processamento Assíncrono
+
+Operações demoradas não deverão bloquear a interface do usuário.
+
+Exemplos futuros:
+
+* geração de PDFs;
+* envio de e-mails;
+* processamento de documentos;
+* geração de relatórios;
+* notificações.
+
+Arquitetura prevista:
+
+```text
+API
+ │
+ ▼
+QUEUE
+ │
+ ▼
+WORKER
+ │
+ ▼
+PROCESSAMENTO
+```
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-023 — Cache
+
+A arquitetura deverá permitir utilização de cache para dados frequentemente consultados.
+
+Tecnologia inicialmente prevista:
+
+**Redis**
+
+**Prioridade:** SHOULD
+
+---
+
+# 4. Escalabilidade
+
+A plataforma será SaaS e deverá permitir crescimento.
+
+---
+
+## RNF-030 — Escalabilidade Horizontal
+
+Os componentes da aplicação deverão poder ser escalados horizontalmente.
+
+```text
+LOAD BALANCER
+      │
+ ┌────┼────┐
+ ▼    ▼    ▼
+API  API  API
+```
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-031 — Aplicação Stateless
+
+A API deverá evitar dependência de estado local entre requisições.
+
+Isso facilitará:
+
+* escalabilidade;
+* deploy;
+* recuperação;
+* balanceamento de carga.
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-032 — Arquitetura Modular
+
+A aplicação deverá possuir módulos independentes logicamente.
+
+Exemplo:
+
+```text
+apps/api/src
+│
+├── iam
+├── tenants
+├── organizations
+├── workers
+├── risks
+├── pgr
+├── documents
+└── audit
+```
+
+**Prioridade:** MUST
+
+---
+
+# 5. Disponibilidade
+
+---
+
+## RNF-040 — Disponibilidade
+
+A arquitetura deverá permitir mecanismos para manter a disponibilidade da plataforma.
+
+Inicialmente não definiremos um SLA comercial rígido.
+
+Porém, a arquitetura deverá permitir evolução futura para:
+
+```text
+99%
+99.5%
+99.9%
+```
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-041 — Tratamento de Falhas
+
+Falhas inesperadas deverão ser tratadas sem exposição de informações internas da aplicação ao usuário.
+
+Exemplo:
+
+```text
+❌ Não:
+
+DatabaseException:
+connection refused...
+
+✅ Sim:
+
+Não foi possível processar sua solicitação.
+Código: ERR-500
+```
+
+**Prioridade:** MUST
+
+---
+
+## RNF-042 — Recuperação
+
+A infraestrutura deverá possuir mecanismos documentados de recuperação.
+
+**Prioridade:** SHOULD
+
+---
+
+# 6. Backup
+
+---
+
+## RNF-050 — Backup de Banco de Dados
+
+O banco de dados deverá possuir política de backup.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-051 — Backup de Documentos
+
+Documentos armazenados deverão possuir estratégia de backup.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-052 — Teste de Recuperação
+
+O processo de restauração deverá ser testado periodicamente.
+
+> Backup que nunca foi testado não é uma garantia de recuperação.
+
+**Prioridade:** SHOULD
+
+---
+
+# 7. Auditoria
+
+Já existe requisito funcional para auditoria. Aqui definimos requisitos de qualidade.
+
+---
+
+## RNF-060 — Imutabilidade Lógica
+
+Registros de auditoria não deverão ser alteráveis por usuários comuns.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-061 — Registro de Contexto
+
+Eventos críticos deverão registrar, quando aplicável:
+
+* usuário;
+* data/hora;
+* tenant;
+* ação;
+* recurso;
+* origem;
+* resultado.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-062 — Retenção
+
+A arquitetura deverá permitir configurar políticas de retenção para logs e auditorias.
+
+**Prioridade:** SHOULD
+
+---
+
+# 8. Usabilidade
+
+O sistema será utilizado por profissionais com diferentes níveis de conhecimento tecnológico.
+
+---
+
+## RNF-070 — Interface Responsiva
+
+A interface deverá funcionar adequadamente em:
+
+* desktop;
+* tablet;
+* dispositivos móveis.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-071 — Consistência Visual
+
+A interface deverá manter padrões consistentes de:
+
+* navegação;
+* botões;
+* formulários;
+* tabelas;
+* feedbacks;
+* mensagens.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-072 — Feedback ao Usuário
+
+Operações realizadas deverão fornecer feedback claro.
+
+Exemplo:
+
+```text
+SALVANDO...
+   ↓
+PROCESSANDO...
+   ↓
+CONCLUÍDO ✓
+```
+
+**Prioridade:** MUST
+
+---
+
+## RNF-073 — Prevenção de Erros
+
+A interface deverá reduzir a possibilidade de erros.
+
+Exemplos:
+
+* validações;
+* confirmações;
+* máscaras;
+* campos obrigatórios;
+* alertas.
+
+**Prioridade:** MUST
+
+---
+
+# 9. Compatibilidade
+
+---
+
+## RNF-080 — Navegadores
+
+A aplicação deverá suportar versões modernas dos principais navegadores.
+
+* Chrome;
+* Edge;
+* Firefox;
+* Safari.
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-081 — API
+
+A API deverá utilizar padrões HTTP e REST.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-082 — Documentação de API
+
+A API deverá possuir documentação técnica atualizada.
+
+Tecnologia prevista:
+
+**OpenAPI / Swagger**
+
+**Prioridade:** MUST
+
+---
+
+# 10. Manutenibilidade
+
+Este requisito é especialmente importante para o crescimento do projeto.
+
+---
+
+## RNF-090 — Código Modular
+
+O código deverá ser organizado por domínio.
+
+Evitar:
+
+```text
+controllers/
+services/
+repositories/
+```
+
+como única organização global da aplicação.
+
+Preferência:
+
+```text
+modules/
+│
+├── workers/
+│   ├── application
+│   ├── domain
+│   └── infrastructure
+│
+├── risks/
+│
+└── pgr/
+```
+
+**Prioridade:** MUST
+
+---
+
+## RNF-091 — TypeScript
+
+Frontend e backend deverão utilizar TypeScript.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-092 — Convenções de Código
+
+O projeto deverá possuir padrões automatizados de:
+
+* lint;
+* formatação;
+* convenções;
+* organização.
+
+Ferramentas previstas:
+
+* ESLint;
+* Prettier.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-093 — Documentação
+
+Decisões arquiteturais relevantes deverão ser documentadas.
+
+Utilizaremos futuramente:
+
+### ADR — Architecture Decision Records
+
+Exemplo:
+
+```text
+ADR-001
+Uso de Monólito Modular
+```
+
+**Prioridade:** SHOULD
+
+---
+
+# 11. Testabilidade
+
+---
+
+## RNF-100 — Testes Unitários
+
+Regras de negócio críticas deverão possuir testes unitários.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-101 — Testes de Integração
+
+Endpoints e integrações críticas deverão possuir testes de integração.
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-102 — Testes E2E
+
+Fluxos críticos deverão possuir testes end-to-end.
+
+Exemplo:
+
+```text
+Criar empresa
+    ↓
+Criar estabelecimento
+    ↓
+Criar setor
+    ↓
+Cadastrar trabalhador
+    ↓
+Cadastrar risco
+    ↓
+Criar PGR
+```
+
+**Prioridade:** SHOULD
+
+---
+
+# 12. Observabilidade
+
+A aplicação deverá permitir que problemas sejam identificados e investigados.
+
+---
+
+## RNF-110 — Logs Estruturados
+
+A aplicação deverá gerar logs estruturados.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-111 — Monitoramento
+
+A arquitetura deverá permitir monitoramento de:
+
+* disponibilidade;
+* utilização;
+* erros;
+* desempenho.
+
+**Prioridade:** SHOULD
+
+---
+
+## RNF-112 — Métricas
+
+A aplicação deverá permitir coleta de métricas técnicas.
+
+Exemplos:
+
+* tempo de resposta;
+* erros;
+* requisições;
+* utilização de recursos.
+
+**Prioridade:** SHOULD
+
+---
+
+# 13. Gestão de Arquivos
+
+Considerando a grande quantidade de documentos do sistema, este tópico merece atenção especial.
+
+---
+
+## RNF-120 — Armazenamento Externo
+
+Documentos não deverão ser armazenados diretamente no banco de dados como arquivos binários.
+
+A estratégia será:
+
+```text
+POSTGRESQL
+     │
+     │ metadados
+     ▼
+DOCUMENT
+     │
+     │ referência
+     ▼
+OBJECT STORAGE
+```
+
+Tecnologias previstas:
+
+* MinIO para desenvolvimento;
+* S3 ou equivalente para produção.
+
+**Prioridade:** MUST
+
+---
+
+## RNF-121 — Controle de Upload
+
+Uploads deverão possuir validação de:
+
+* extensão;
+* tipo;
+* tamanho;
+* permissões.
+
+**Prioridade:** MUST
+
+---
+
+# 14. Portabilidade e Infraestrutura
+
+---
+
+## RNF-130 — Containerização
+
+Os principais componentes deverão ser executáveis através de containers.
+
+Tecnologia:
+
+**Docker**
+
+**Prioridade:** MUST
+
+---
+
+## RNF-131 — Ambiente Reproduzível
+
+O projeto deverá possuir configuração para execução local padronizada.
+
+Tecnologia:
+
+**Docker Compose**
+
+**Prioridade:** MUST
+
+---
+
+## RNF-132 — Separação de Ambientes
+
+A aplicação deverá suportar ambientes distintos:
+
+```text
+LOCAL
+   ↓
+DEVELOPMENT
+   ↓
+STAGING
+   ↓
+PRODUCTION
+```
+
+**Prioridade:** SHOULD
+
+---
+
+# 15. Qualidade Arquitetural
+
+Podemos resumir os principais atributos de qualidade:
+
+```text
+                 SEGURANÇA
+                     ▲
+                     │
+MANUTENIBILIDADE ◄───┼───► ESCALABILIDADE
+                     │
+                     ▼
+                DESEMPENHO
+```
+
+E nossa arquitetura deverá buscar equilíbrio entre:
+
+* simplicidade;
+* segurança;
+* velocidade de desenvolvimento;
+* manutenção;
+* escalabilidade.
+
+---
+
+# 16. Resumo dos RNFs críticos
+
+## Segurança
+
+```text
+RNF-001 → Autenticação
+RNF-002 → Autorização
+RNF-003 → Menor privilégio
+RNF-004 → Isolamento de tenant
+RNF-005 → HTTPS
+RNF-006 → Proteção de senha
+```
+
+## Privacidade
+
+```text
+RNF-010 → Privacy by Design
+RNF-011 → Minimização
+RNF-012 → Dados sensíveis
+RNF-013 → Auditoria
+```
+
+## Arquitetura
+
+```text
+RNF-030 → Escalabilidade
+RNF-031 → Stateless
+RNF-032 → Modularidade
+```
+
+## Qualidade
+
+```text
+RNF-090 → Código modular
+RNF-091 → TypeScript
+RNF-100 → Testes
+RNF-110 → Logs
+```
+
+## Infraestrutura
+
+```text
+RNF-120 → Object Storage
+RNF-130 → Docker
+RNF-131 → Docker Compose
+```
+
+---
+
+# Resultado da Etapa 5
+
+Agora temos dois pilares fundamentais documentados:
+
+```text
+REQUISITOS
+│
+├── FUNCIONAIS
+│     │
+│     └── O que o sistema faz
+│
+└── NÃO FUNCIONAIS
+      │
+      └── Como o sistema deve se comportar
+```
+
+Esses requisitos serão utilizados diretamente nas próximas fases para definir:
+
+* regras de negócio;
+* casos de uso;
+* arquitetura;
+* modelo de dados;
+* segurança;
+* infraestrutura;
+* testes.
+
+---
+
+# STATUS ATUAL DO PROJETO
+
+| Etapa                            | Status    |
+| -------------------------------- | --------- |
+| 1. Visão do Produto              | ✅         |
+| 2. Stakeholders e Personas       | ✅         |
+| 3. Escopo do Sistema             | ✅         |
+| 4. Requisitos Funcionais         | ✅         |
+| **5. Requisitos Não Funcionais** | ✅         |
+| 6. Regras de Negócio             | ⏳ Próxima |
+| 7. Casos de Uso                  | ⏳         |
+| 8. Product Backlog               | ⏳         |
+| 9. Critérios de Aceitação        | ⏳         |
+| 10. Matriz de Rastreabilidade    | ⏳         |
+
+# Próxima etapa: ETAPA 6 — REGRAS DE NEGÓCIO
+
+Aqui começaremos a definir as regras que governam o comportamento real da plataforma.
+
+Exemplos:
+
+* um usuário pertence a um tenant;
+* um trabalhador possui histórico ocupacional;
+* um risco não pode existir sem contexto organizacional;
+* um PGR possui ciclo de vida;
+* uma ação possui responsável e prazo;
+* documentos possuem versionamento;
+* dados sensíveis possuem acesso restrito.
+
+Essa etapa será particularmente importante porque começaremos a transformar o conhecimento do domínio de **Saúde e Segurança do Trabalho** em regras formais do sistema.
