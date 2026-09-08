@@ -1,0 +1,442 @@
+# ETAPA 9 — Arquitetura do Sistema
+
+**Projeto:** SST360 — Plataforma SaaS de Gestão de SST
+**Versão:** 1.0
+
+## 1. Arquitetura escolhida
+
+O SST360 utilizará:
+
+**Monólito Modular Laravel**
+
+A aplicação será única, mas dividida em módulos de negócio independentes.
+
+```text
+Usuário
+   ↓
+Nginx
+   ↓
+Laravel
+   ├── IAM
+   ├── Tenancy
+   ├── Organização
+   ├── Trabalhadores
+   ├── Riscos
+   ├── PGR
+   ├── Saúde
+   ├── CIPA
+   ├── EPI
+   ├── Treinamentos
+   ├── Acidentes
+   ├── Documentos
+   ├── Compliance
+   ├── Indicadores
+   ├── Notificações
+   └── Auditoria
+        │
+        ├── MySQL
+        ├── Redis
+        └── Storage
+```
+
+---
+
+## 2. Estrutura das camadas
+
+Cada módulo seguirá, quando necessário, uma estrutura semelhante:
+
+```text
+Módulo
+│
+├── Controllers
+├── Requests
+├── Models
+├── Services
+├── Policies
+├── Jobs
+├── Events
+├── Listeners
+└── Tests
+```
+
+### Responsabilidades
+
+| Camada     | Responsabilidade               |
+| ---------- | ------------------------------ |
+| Controller | Receber requisições            |
+| Request    | Validar dados                  |
+| Service    | Executar operações de negócio  |
+| Model      | Persistência e relacionamentos |
+| Policy     | Autorizar acesso               |
+| Job        | Processamento assíncrono       |
+| Event      | Comunicar acontecimentos       |
+| Listener   | Reagir aos eventos             |
+| Test       | Validar comportamento          |
+
+---
+
+## 3. Módulos principais
+
+### M01 — IAM
+
+* usuários;
+* perfis;
+* permissões;
+* autenticação;
+* autorização.
+
+### M02 — Tenancy
+
+* tenants;
+* isolamento;
+* contexto da empresa cliente.
+
+### M03 — Organização
+
+* empresas;
+* estabelecimentos;
+* setores;
+* cargos;
+* funções.
+
+### M04 — Trabalhadores
+
+* cadastro;
+* histórico;
+* alocação;
+* situação;
+* dossiê.
+
+### M05 — Riscos
+
+* perigos;
+* agentes;
+* riscos;
+* avaliações;
+* controles.
+
+### M06 — GRO/PGR
+
+* inventário;
+* avaliações;
+* plano de ação;
+* versões;
+* aprovação.
+
+### M07 — Saúde
+
+* PCMSO;
+* exames;
+* ASO;
+* histórico ocupacional.
+
+### M08 — CIPA
+
+* processo eleitoral;
+* membros;
+* reuniões;
+* documentos;
+* ações.
+
+### M09 — EPI
+
+* equipamentos;
+* entrega;
+* devolução;
+* validade;
+* registros.
+
+### M10 — Treinamentos
+
+* treinamentos;
+* participantes;
+* certificados;
+* validade.
+
+### M11 — Acidentes
+
+* acidentes;
+* incidentes;
+* investigação;
+* CAT;
+* ações corretivas.
+
+### M12 — Documentos
+
+* arquivos;
+* versões;
+* validade;
+* classificação;
+* aprovação.
+
+### M13 — Compliance
+
+* requisitos;
+* obrigações;
+* evidências;
+* pendências.
+
+### M14 — Indicadores
+
+* indicadores;
+* métricas;
+* dashboards;
+* relatórios.
+
+### M15 — Notificações
+
+* alertas;
+* vencimentos;
+* pendências;
+* comunicações.
+
+### M16 — Auditoria
+
+* logs;
+* alterações;
+* acessos;
+* eventos críticos.
+
+---
+
+## 4. Comunicação entre módulos
+
+Os módulos não deverão acessar diretamente a lógica interna uns dos outros.
+
+Exemplo:
+
+```text
+Trabalhadores
+      │
+      ▼
+Riscos
+      │
+      ▼
+PGR
+```
+
+A comunicação deverá ocorrer através de:
+
+* Services;
+* Events;
+* Jobs;
+* contratos bem definidos.
+
+---
+
+## 5. Exemplo de fluxo
+
+Cadastro de trabalhador:
+
+```text
+Controller
+    ↓
+Request
+    ↓
+WorkerService
+    ↓
+Validação de regras
+    ↓
+Worker Model
+    ↓
+MySQL
+    ↓
+Event
+    ↓
+Audit / Notifications
+```
+
+---
+
+## 6. Processamento assíncrono
+
+Operações demoradas utilizarão Jobs.
+
+Exemplos:
+
+```text
+Gerar PGR PDF
+Gerar relatório
+Enviar notificações
+Processar documentos
+Calcular indicadores
+Executar integrações
+```
+
+Fluxo:
+
+```text
+Laravel
+   ↓
+Job
+   ↓
+Redis
+   ↓
+Worker
+   ↓
+Resultado
+```
+
+---
+
+## 7. Segurança arquitetural
+
+Toda operação deverá respeitar:
+
+```text
+Usuário
+   ↓
+Tenant
+   ↓
+Permissão
+   ↓
+Scope
+   ↓
+Policy
+   ↓
+Operação
+```
+
+Nenhum módulo poderá ignorar o controle de autorização.
+
+Operações críticas deverão gerar auditoria.
+
+---
+
+## 8. Documentos
+
+O sistema separará:
+
+**Documento ≠ Arquivo**
+
+```text
+Documento
+   │
+   ├── Metadados → MySQL
+   │
+   └── Arquivo → Storage
+```
+
+Isso permitirá controle de:
+
+* versões;
+* validade;
+* aprovação;
+* classificação;
+* histórico;
+* auditoria.
+
+---
+
+## 9. API
+
+O Laravel poderá disponibilizar:
+
+```text
+/api/v1/
+```
+
+Exemplos:
+
+```text
+/api/v1/auth
+/api/v1/workers
+/api/v1/risks
+/api/v1/pgrs
+/api/v1/documents
+```
+
+A API será preparada para futuras integrações.
+
+---
+
+## 10. Banco de dados
+
+Arquitetura inicial:
+
+```text
+Laravel
+    │
+    ▼
+   MySQL
+    │
+    ├── tenants
+    ├── users
+    ├── companies
+    ├── establishments
+    ├── sectors
+    ├── workers
+    ├── hazards
+    ├── risks
+    ├── controls
+    ├── pgrs
+    ├── documents
+    └── ...
+```
+
+O modelo detalhado será definido na **FASE 4 — Arquitetura de Dados**.
+
+---
+
+## 11. Estrutura conceitual do projeto
+
+```text
+sst360/
+│
+├── app/
+│   ├── Modules/
+│   │   ├── IAM/
+│   │   ├── Tenancy/
+│   │   ├── Organization/
+│   │   ├── Workers/
+│   │   ├── Risks/
+│   │   ├── PGR/
+│   │   ├── Health/
+│   │   ├── CIPA/
+│   │   ├── PPE/
+│   │   ├── Training/
+│   │   ├── Accidents/
+│   │   ├── Documents/
+│   │   ├── Compliance/
+│   │   ├── Indicators/
+│   │   ├── Notifications/
+│   │   └── Audit/
+│   │
+│   └── Shared/
+│
+├── database/
+├── resources/
+├── routes/
+├── tests/
+├── storage/
+└── docker/
+```
+
+A estrutura física definitiva poderá ser ajustada quando iniciarmos o projeto Laravel.
+
+---
+
+# 12. Princípios
+
+O desenvolvimento seguirá estes princípios:
+
+1. **Simplicidade**
+2. **Separação de responsabilidades**
+3. **Segurança por padrão**
+4. **Isolamento entre tenants**
+5. **Código testável**
+6. **Regras de negócio centralizadas**
+7. **Auditoria**
+8. **Baixo acoplamento**
+9. **Evolução incremental**
+10. **Evitar complexidade prematura**
+
+---
+
+# 13. Resultado
+
+A arquitetura do SST360 está definida como:
+
+**Laravel + Monólito Modular + MySQL + Redis + Storage + Blade/Livewire.**
+
+A arquitetura permite começar simples e evoluir posteriormente sem transformar o MVP em uma infraestrutura excessivamente complexa.
