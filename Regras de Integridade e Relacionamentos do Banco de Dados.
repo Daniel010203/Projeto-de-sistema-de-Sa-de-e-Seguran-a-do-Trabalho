@@ -1,0 +1,281 @@
+# ETAPA 14 — Regras de Integridade e Relacionamentos do Banco
+
+## 1. Objetivo
+
+Definir as regras que garantem consistência, integridade referencial, isolamento entre tenants e preservação do histórico do SST360.
+
+---
+
+## 2. Regras de Integridade
+
+| ID     | Regra                                                                                                     |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| RI-001 | Toda entidade diretamente pertencente a um tenant deve possuir `tenant_id`.                               |
+| RI-002 | Registros de tenants diferentes não podem ser relacionados.                                               |
+| RI-003 | Toda chave estrangeira deve referenciar um registro existente.                                            |
+| RI-004 | Registros históricos não devem ser excluídos fisicamente quando sua exclusão comprometer rastreabilidade. |
+| RI-005 | Usuários inativos não podem realizar operações no sistema.                                                |
+| RI-006 | Um trabalhador deve permanecer vinculado ao mesmo tenant durante todo seu histórico.                      |
+| RI-007 | Uma alocação de trabalhador deve possuir trabalhador, setor, cargo/função e data inicial válidos.         |
+| RI-008 | Uma avaliação de risco deve estar vinculada a um risco e a um contexto organizacional válido.             |
+| RI-009 | Um risco deve estar associado a um perigo pertencente ao mesmo tenant.                                    |
+| RI-010 | Um controle deve estar associado a uma avaliação de risco existente.                                      |
+| RI-011 | Um inventário de riscos deve pertencer a um PGR existente.                                                |
+| RI-012 | Uma ação do plano de ação deve pertencer a um PGR existente.                                              |
+| RI-013 | Uma versão de documento deve pertencer a um documento existente.                                          |
+| RI-014 | A versão atual de um documento deve existir na tabela `document_versions`.                                |
+| RI-015 | Registros de auditoria não devem ser fisicamente alterados ou excluídos pela operação normal do sistema.  |
+
+---
+
+## 3. Relacionamentos Principais
+
+| Origem          | Relação | Destino            |
+| --------------- | ------- | ------------------ |
+| Tenant          | 1:N     | Users              |
+| Tenant          | 1:N     | Companies          |
+| Company         | 1:N     | Establishments     |
+| Establishment   | 1:N     | Sectors            |
+| Tenant          | 1:N     | Positions          |
+| Tenant          | 1:N     | Workers            |
+| Worker          | 1:N     | Worker Allocations |
+| Sector          | 1:N     | Worker Allocations |
+| Position        | 1:N     | Worker Allocations |
+| Tenant          | 1:N     | Hazards            |
+| Hazard          | 1:N     | Risks              |
+| Risk            | 1:N     | Risk Assessments   |
+| Sector          | 1:N     | Risk Assessments   |
+| Risk Assessment | 1:N     | Controls           |
+| Tenant          | 1:N     | PGRs               |
+| PGR             | 1:N     | Risk Inventories   |
+| Risk Assessment | 1:N     | Risk Inventories   |
+| PGR             | 1:N     | Action Plans       |
+| Tenant          | 1:N     | Documents          |
+| Document        | 1:N     | Document Versions  |
+| Tenant          | 1:N     | Audit Logs         |
+| User            | 1:N     | Audit Logs         |
+
+---
+
+## 4. Regras de Chaves Estrangeiras
+
+As principais FKs serão:
+
+```text
+users.tenant_id
+companies.tenant_id
+establishments.company_id
+sectors.establishment_id
+positions.tenant_id
+workers.tenant_id
+
+worker_allocations.worker_id
+worker_allocations.sector_id
+worker_allocations.position_id
+
+hazards.tenant_id
+risks.tenant_id
+risks.hazard_id
+
+risk_assessments.tenant_id
+risk_assessments.risk_id
+risk_assessments.sector_id
+
+controls.tenant_id
+controls.risk_assessment_id
+
+pgrs.tenant_id
+pgrs.establishment_id
+
+risk_inventories.pgr_id
+risk_inventories.risk_assessment_id
+
+action_plans.tenant_id
+action_plans.pgr_id
+
+documents.tenant_id
+documents.current_version_id
+
+document_versions.document_id
+document_versions.created_by
+
+audit_logs.tenant_id
+audit_logs.user_id
+```
+
+---
+
+## 5. Integridade de Tenant
+
+A regra mais importante da arquitetura será:
+
+```text
+TENANT A
+ ├── Empresas
+ ├── Estabelecimentos
+ ├── Setores
+ ├── Trabalhadores
+ ├── Riscos
+ ├── PGRs
+ └── Documentos
+
+TENANT B
+ ├── Empresas
+ ├── Estabelecimentos
+ ├── Setores
+ ├── Trabalhadores
+ ├── Riscos
+ ├── PGRs
+ └── Documentos
+```
+
+**Nenhum relacionamento poderá cruzar os limites de um tenant.**
+
+Essa regra deverá ser protegida em três níveis:
+
+1. Banco de dados;
+2. Regras de domínio/aplicação;
+3. Policies e autorização do Laravel.
+
+---
+
+## 6. Exclusão de Dados
+
+O sistema adotará, quando aplicável:
+
+* `SoftDeletes`;
+* preservação de registros históricos;
+* exclusão lógica;
+* bloqueio de exclusão de entidades com histórico relevante;
+* auditoria das operações críticas.
+
+Exemplo:
+
+```text
+Worker
+   ↓
+Histórico de alocações
+   ↓
+Exposições
+   ↓
+Avaliações
+   ↓
+Documentos
+```
+
+A exclusão do trabalhador não deve destruir esse histórico.
+
+---
+
+## 7. Integridade do PGR
+
+Um PGR deverá manter:
+
+```text
+PGR
+ ├── Inventário de Riscos
+ │    └── Avaliações de Risco
+ │
+ └── Plano de Ação
+      └── Ações
+```
+
+Uma alteração relevante em um PGR ativo deverá gerar nova versão ou revisão, conforme a regra definida no módulo PGR.
+
+A versão aprovada deverá permanecer preservada para consulta histórica.
+
+---
+
+## 8. Integridade Documental
+
+O relacionamento será:
+
+```text
+DOCUMENT
+    │
+    ├── VERSION 1
+    ├── VERSION 2
+    └── VERSION 3
+```
+
+O registro `documents` representa o documento lógico.
+
+O registro `document_versions` representa cada versão física/documental.
+
+A aplicação deverá impedir que uma versão aprovada seja sobrescrita.
+
+---
+
+## 9. Integridade de Auditoria
+
+Operações críticas deverão registrar:
+
+```text
+Usuário
+Tenant
+Data/Hora
+Ação
+Entidade
+ID da entidade
+IP
+Resultado
+```
+
+Exemplos:
+
+* criação;
+* alteração;
+* aprovação;
+* exclusão lógica;
+* acesso a documento sensível;
+* alteração de permissões;
+* geração de documento;
+* alteração de PGR.
+
+---
+
+## 10. Índices Essenciais
+
+Deverão existir índices para:
+
+```text
+tenant_id
+company_id
+establishment_id
+sector_id
+worker_id
+position_id
+hazard_id
+risk_id
+risk_assessment_id
+pgr_id
+document_id
+created_at
+status
+```
+
+Índices compostos poderão ser utilizados, por exemplo:
+
+```text
+(tenant_id, status)
+(tenant_id, created_at)
+(tenant_id, document_type)
+(tenant_id, status, created_at)
+```
+
+---
+
+## 11. Resultado da Etapa
+
+Ao final desta etapa, o SST360 possui:
+
+* integridade referencial definida;
+* relacionamentos principais definidos;
+* regras de isolamento por tenant;
+* estratégia de preservação histórica;
+* regras de exclusão;
+* integridade documental;
+* integridade do PGR;
+* requisitos básicos de índices.
+
+**Próxima etapa: ETAPA 15 — Estratégia de Migrations e Estrutura Física do Banco de Dados Laravel.**
