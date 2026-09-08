@@ -1,0 +1,500 @@
+# ETAPA 15 — Estratégia de Migrations e Estrutura Física do Banco
+
+**Projeto:** SST360
+**Stack:** Laravel + MySQL
+**Versão:** 1.0
+
+## 1. Objetivo
+
+Definir a ordem e a estratégia para criação do banco de dados através de Migrations do Laravel.
+
+---
+
+## 2. Princípio
+
+As migrations serão criadas por grupos funcionais.
+
+Não criaremos todo o banco de uma única vez.
+
+A ordem seguirá as dependências entre as entidades.
+
+```text
+Infraestrutura
+      ↓
+Tenant
+      ↓
+IAM
+      ↓
+Organização
+      ↓
+Trabalhadores
+      ↓
+Riscos
+      ↓
+PGR
+      ↓
+Documentos
+      ↓
+Auditoria
+```
+
+---
+
+# 3. Grupo 01 — Infraestrutura
+
+Tabelas base do Laravel:
+
+```text
+users
+password_reset_tokens
+sessions
+cache
+jobs
+failed_jobs
+```
+
+Observação:
+
+A tabela `users` será adaptada posteriormente para suportar o relacionamento com `tenant_id`.
+
+---
+
+# 4. Grupo 02 — Multi-Tenancy
+
+Ordem:
+
+```text
+tenants
+```
+
+Estrutura:
+
+```text
+tenants
+├── id
+├── name
+├── document
+├── status
+├── created_at
+└── updated_at
+```
+
+Após sua criação, as entidades pertencentes ao cliente poderão utilizar:
+
+```text
+tenant_id
+```
+
+---
+
+# 5. Grupo 03 — IAM
+
+Tabelas:
+
+```text
+users
+roles
+permissions
+role_user
+permission_role
+```
+
+Estrutura conceitual:
+
+```text
+TENANT
+   │
+   └── USERS
+          │
+          ▼
+        ROLES
+          │
+          ▼
+     PERMISSIONS
+```
+
+A estratégia definitiva de permissões será implementada com base em RBAC.
+
+---
+
+# 6. Grupo 04 — Organização
+
+Ordem:
+
+```text
+companies
+     ↓
+establishments
+     ↓
+sectors
+
+positions
+```
+
+Relacionamento:
+
+```text
+Tenant
+   │
+   ▼
+Company
+   │
+   ▼
+Establishment
+   │
+   ▼
+Sector
+```
+
+---
+
+# 7. Grupo 05 — Trabalhadores
+
+Tabelas:
+
+```text
+workers
+worker_allocations
+```
+
+Ordem:
+
+```text
+workers
+    ↓
+worker_allocations
+```
+
+Relacionamento:
+
+```text
+Worker
+   │
+   └── WorkerAllocation
+            │
+            ├── Sector
+            └── Position
+```
+
+---
+
+# 8. Grupo 06 — Perigos e Riscos
+
+Ordem:
+
+```text
+hazards
+    ↓
+risks
+    ↓
+risk_assessments
+    ↓
+controls
+```
+
+Fluxo:
+
+```text
+Hazard
+   ↓
+Risk
+   ↓
+RiskAssessment
+   ↓
+Control
+```
+
+---
+
+# 9. Grupo 07 — PGR
+
+Ordem:
+
+```text
+pgrs
+    ↓
+risk_inventories
+    ↓
+action_plans
+```
+
+Estrutura:
+
+```text
+PGR
+ ├── RiskInventory
+ │      └── RiskAssessment
+ │
+ └── ActionPlan
+```
+
+---
+
+# 10. Grupo 08 — Documentos
+
+Ordem:
+
+```text
+documents
+    ↓
+document_versions
+```
+
+Relacionamento:
+
+```text
+Document
+   │
+   └── DocumentVersion
+```
+
+O arquivo físico permanecerá fora do banco.
+
+---
+
+# 11. Grupo 09 — Auditoria
+
+Tabela:
+
+```text
+audit_logs
+```
+
+Essa tabela será criada após as principais entidades.
+
+A auditoria deverá possuir referências flexíveis para registrar eventos de múltiplos módulos.
+
+---
+
+# 12. Ordem oficial das Migrations
+
+```text
+01 → tenants
+
+02 → users
+03 → roles
+04 → permissions
+05 → role_user
+06 → permission_role
+
+07 → companies
+08 → establishments
+09 → sectors
+10 → positions
+
+11 → workers
+12 → worker_allocations
+
+13 → hazards
+14 → risks
+15 → risk_assessments
+16 → controls
+
+17 → pgrs
+18 → risk_inventories
+19 → action_plans
+
+20 → documents
+21 → document_versions
+
+22 → audit_logs
+```
+
+---
+
+# 13. Padrão de Migration
+
+Todas as migrations deverão seguir o padrão:
+
+```text
+Schema::create('table_name', function (Blueprint $table) {
+
+    $table->id();
+
+    // Campos
+
+    $table->timestamps();
+
+});
+```
+
+Quando aplicável:
+
+```text
+$table->foreignId('tenant_id')
+      ->constrained()
+      ->cascadeOnUpdate();
+```
+
+A estratégia de exclusão deverá ser analisada individualmente.
+
+Não utilizaremos `cascadeOnDelete()` indiscriminadamente, pois o SST360 possui forte necessidade de preservação histórica.
+
+---
+
+# 14. Foreign Keys
+
+As Foreign Keys deverão ser declaradas explicitamente.
+
+Exemplo conceitual:
+
+```text
+workers
+    │
+    └── tenant_id
+            │
+            ▼
+         tenants.id
+```
+
+Outro exemplo:
+
+```text
+establishments
+     │
+     └── company_id
+            │
+            ▼
+        companies.id
+```
+
+---
+
+# 15. Soft Deletes
+
+Será utilizado apenas onde fizer sentido.
+
+Exemplos candidatos:
+
+```text
+companies
+establishments
+sectors
+positions
+workers
+hazards
+risks
+documents
+```
+
+Não será utilizado indiscriminadamente.
+
+Registros de auditoria e histórico deverão possuir estratégia própria de retenção.
+
+---
+
+# 16. Seeders
+
+Os Seeders serão utilizados apenas para dados iniciais.
+
+Exemplos:
+
+```text
+RolesSeeder
+PermissionsSeeder
+AdminSeeder
+HazardCategoriesSeeder
+```
+
+Possíveis dados iniciais:
+
+```text
+SUPER_ADMIN
+ADMIN
+GESTOR_SST
+TECNICO_SST
+ENGENHEIRO_SST
+MEDICO_TRABALHO
+RH
+GESTOR_AREA
+AUDITOR
+TRABALHADOR
+```
+
+---
+
+# 17. Factories
+
+Factories serão utilizadas principalmente para testes.
+
+Exemplos:
+
+```text
+TenantFactory
+UserFactory
+CompanyFactory
+WorkerFactory
+HazardFactory
+RiskFactory
+```
+
+Isso permitirá criar cenários automatizados.
+
+---
+
+# 18. Ambientes
+
+O banco deverá possuir ambientes independentes:
+
+```text
+Development
+     │
+     ▼
+Testing
+     │
+     ▼
+Staging
+     │
+     ▼
+Production
+```
+
+Nenhum dado real de produção deverá ser utilizado diretamente no ambiente de desenvolvimento.
+
+---
+
+# 19. Backup
+
+A estratégia futura deverá contemplar:
+
+* backup automatizado;
+* retenção;
+* restauração;
+* testes de recuperação;
+* armazenamento separado;
+* controle de acesso.
+
+---
+
+# 20. Regra principal
+
+A evolução do banco deverá ocorrer exclusivamente através de:
+
+```text
+Migration
+      ↓
+Versionamento Git
+      ↓
+Code Review
+      ↓
+Testes
+      ↓
+Deploy
+```
+
+Alterações estruturais manuais diretamente no banco de produção deverão ser evitadas.
+
+---
+
+# Resultado
+
+A estrutura física do SST360 será construída de forma incremental, respeitando:
+
+* dependências;
+* integridade referencial;
+* multi-tenancy;
+* histórico;
+* auditoria;
+* versionamento.
+
+As migrations somente começarão a ser implementadas quando iniciarmos a fase prática do Laravel.
