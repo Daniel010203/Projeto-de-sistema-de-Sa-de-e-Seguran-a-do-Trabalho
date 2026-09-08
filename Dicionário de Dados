@@ -1,0 +1,395 @@
+# ETAPA 13 — Dicionário de Dados
+
+**Projeto:** SST360
+**Banco:** MySQL
+**ORM:** Laravel Eloquent
+**Versão:** 1.0
+
+## 1. Objetivo
+
+Definir, de forma resumida, a finalidade das principais tabelas e campos do banco de dados do SST360.
+
+---
+
+# 2. Tabelas do sistema
+
+| Tabela               | Finalidade                              |
+| -------------------- | --------------------------------------- |
+| `tenants`            | Clientes da plataforma SaaS             |
+| `users`              | Usuários que acessam o sistema          |
+| `roles`              | Perfis/funções de acesso                |
+| `permissions`        | Permissões individuais                  |
+| `companies`          | Empresas cadastradas                    |
+| `establishments`     | Estabelecimentos das empresas           |
+| `sectors`            | Setores dos estabelecimentos            |
+| `positions`          | Cargos e funções                        |
+| `workers`            | Trabalhadores                           |
+| `worker_allocations` | Histórico de alocação dos trabalhadores |
+| `hazards`            | Perigos ocupacionais                    |
+| `risks`              | Riscos relacionados aos perigos         |
+| `risk_assessments`   | Avaliações dos riscos                   |
+| `controls`           | Medidas de controle                     |
+| `pgrs`               | Programas de Gerenciamento de Riscos    |
+| `risk_inventories`   | Itens do inventário de riscos           |
+| `action_plans`       | Ações do PGR                            |
+| `documents`          | Documentos lógicos                      |
+| `document_versions`  | Versões dos documentos                  |
+| `audit_logs`         | Registro das operações auditáveis       |
+
+---
+
+# 3. Campos principais
+
+## `tenants`
+
+| Campo        | Descrição                  |
+| ------------ | -------------------------- |
+| `id`         | Identificador do tenant    |
+| `name`       | Nome do cliente            |
+| `document`   | Documento de identificação |
+| `status`     | Situação do tenant         |
+| `created_at` | Data de criação            |
+| `updated_at` | Data da última alteração   |
+
+---
+
+## `users`
+
+| Campo        | Descrição                        |
+| ------------ | -------------------------------- |
+| `id`         | Identificador do usuário         |
+| `tenant_id`  | Tenant ao qual pertence          |
+| `name`       | Nome                             |
+| `email`      | E-mail de acesso                 |
+| `password`   | Senha armazenada de forma segura |
+| `status`     | Situação do usuário              |
+| `created_at` | Data de criação                  |
+| `updated_at` | Data da alteração                |
+
+---
+
+## `companies`
+
+| Campo       | Descrição                       |
+| ----------- | ------------------------------- |
+| `id`        | Identificador da empresa        |
+| `tenant_id` | Tenant proprietário             |
+| `name`      | Razão/nome da empresa           |
+| `document`  | CNPJ ou identificador aplicável |
+| `status`    | Situação da empresa             |
+
+---
+
+## `establishments`
+
+| Campo        | Descrição                        |
+| ------------ | -------------------------------- |
+| `id`         | Identificador                    |
+| `company_id` | Empresa vinculada                |
+| `name`       | Nome do estabelecimento          |
+| `identifier` | Identificação do estabelecimento |
+| `status`     | Situação                         |
+
+---
+
+## `sectors`
+
+| Campo              | Descrição                 |
+| ------------------ | ------------------------- |
+| `id`               | Identificador             |
+| `establishment_id` | Estabelecimento vinculado |
+| `name`             | Nome do setor             |
+| `status`           | Situação                  |
+
+---
+
+## `positions`
+
+| Campo         | Descrição            |
+| ------------- | -------------------- |
+| `id`          | Identificador        |
+| `tenant_id`   | Tenant proprietário  |
+| `name`        | Nome do cargo/função |
+| `description` | Descrição            |
+| `status`      | Situação             |
+
+---
+
+## `workers`
+
+| Campo        | Descrição                  |
+| ------------ | -------------------------- |
+| `id`         | Identificador              |
+| `tenant_id`  | Tenant proprietário        |
+| `name`       | Nome do trabalhador        |
+| `document`   | Documento de identificação |
+| `birth_date` | Data de nascimento         |
+| `status`     | Situação do trabalhador    |
+
+---
+
+## `worker_allocations`
+
+| Campo         | Descrição          |
+| ------------- | ------------------ |
+| `id`          | Identificador      |
+| `worker_id`   | Trabalhador        |
+| `sector_id`   | Setor              |
+| `position_id` | Cargo/função       |
+| `start_date`  | Início da alocação |
+| `end_date`    | Fim da alocação    |
+
+**Finalidade:** preservar o histórico profissional do trabalhador dentro da organização.
+
+---
+
+# 4. Riscos
+
+## `hazards`
+
+| Campo         | Descrição           |
+| ------------- | ------------------- |
+| `id`          | Identificador       |
+| `tenant_id`   | Tenant proprietário |
+| `name`        | Nome do perigo      |
+| `category`    | Categoria           |
+| `description` | Descrição           |
+
+---
+
+## `risks`
+
+| Campo         | Descrição           |
+| ------------- | ------------------- |
+| `id`          | Identificador       |
+| `tenant_id`   | Tenant proprietário |
+| `hazard_id`   | Perigo relacionado  |
+| `name`        | Nome do risco       |
+| `description` | Descrição           |
+
+---
+
+## `risk_assessments`
+
+| Campo            | Descrição              |
+| ---------------- | ---------------------- |
+| `id`             | Identificador          |
+| `tenant_id`      | Tenant proprietário    |
+| `risk_id`        | Risco avaliado         |
+| `sector_id`      | Setor avaliado         |
+| `probability`    | Probabilidade          |
+| `severity`       | Severidade             |
+| `score`          | Resultado da avaliação |
+| `classification` | Classificação do risco |
+| `assessed_at`    | Data da avaliação      |
+
+---
+
+## `controls`
+
+| Campo                | Descrição             |
+| -------------------- | --------------------- |
+| `id`                 | Identificador         |
+| `tenant_id`          | Tenant proprietário   |
+| `risk_assessment_id` | Avaliação relacionada |
+| `type`               | Tipo de controle      |
+| `description`        | Medida adotada        |
+| `status`             | Situação              |
+
+---
+
+# 5. PGR
+
+## `pgrs`
+
+| Campo              | Descrição           |
+| ------------------ | ------------------- |
+| `id`               | Identificador       |
+| `tenant_id`        | Tenant proprietário |
+| `establishment_id` | Estabelecimento     |
+| `version`          | Versão do PGR       |
+| `status`           | Situação            |
+| `valid_from`       | Início da validade  |
+| `valid_until`      | Final da validade   |
+| `approved_at`      | Data de aprovação   |
+
+---
+
+## `risk_inventories`
+
+| Campo                | Descrição          |
+| -------------------- | ------------------ |
+| `id`                 | Identificador      |
+| `pgr_id`             | PGR relacionado    |
+| `risk_assessment_id` | Avaliação incluída |
+
+**Finalidade:** relacionar as avaliações de risco ao Inventário de Riscos do PGR.
+
+---
+
+## `action_plans`
+
+| Campo            | Descrição           |
+| ---------------- | ------------------- |
+| `id`             | Identificador       |
+| `tenant_id`      | Tenant proprietário |
+| `pgr_id`         | PGR relacionado     |
+| `description`    | Descrição da ação   |
+| `responsible_id` | Responsável         |
+| `due_date`       | Prazo               |
+| `status`         | Situação            |
+| `completed_at`   | Data de conclusão   |
+
+---
+
+# 6. Documentos
+
+## `documents`
+
+| Campo                | Descrição               |
+| -------------------- | ----------------------- |
+| `id`                 | Identificador           |
+| `tenant_id`          | Tenant proprietário     |
+| `document_type`      | Tipo do documento       |
+| `title`              | Título                  |
+| `status`             | Situação                |
+| `classification`     | Classificação de acesso |
+| `current_version_id` | Versão atual            |
+
+---
+
+## `document_versions`
+
+| Campo         | Descrição                  |
+| ------------- | -------------------------- |
+| `id`          | Identificador              |
+| `document_id` | Documento                  |
+| `version`     | Número da versão           |
+| `file_path`   | Localização do arquivo     |
+| `file_name`   | Nome do arquivo            |
+| `mime_type`   | Tipo do arquivo            |
+| `file_size`   | Tamanho                    |
+| `created_by`  | Usuário que criou a versão |
+
+---
+
+# 7. Auditoria
+
+## `audit_logs`
+
+| Campo         | Descrição           |
+| ------------- | ------------------- |
+| `id`          | Identificador       |
+| `tenant_id`   | Tenant              |
+| `user_id`     | Usuário responsável |
+| `action`      | Operação realizada  |
+| `entity_type` | Tipo da entidade    |
+| `entity_id`   | Registro afetado    |
+| `ip_address`  | Origem da operação  |
+| `created_at`  | Data/hora           |
+
+---
+
+# 8. Convenções
+
+### Identificadores
+
+```text
+id
+```
+
+Chave primária padrão.
+
+### Relacionamentos
+
+```text
+tenant_id
+company_id
+establishment_id
+sector_id
+worker_id
+risk_id
+pgr_id
+document_id
+```
+
+Utilizados como Foreign Keys.
+
+### Datas
+
+```text
+created_at
+updated_at
+```
+
+Padrão Laravel.
+
+Datas específicas utilizarão:
+
+```text
+DATE
+TIMESTAMP
+```
+
+conforme a necessidade.
+
+---
+
+# 9. Regra de nomenclatura
+
+Tabelas:
+
+```text
+snake_case + plural
+```
+
+Exemplo:
+
+```text
+workers
+risk_assessments
+document_versions
+```
+
+Campos:
+
+```text
+snake_case
+```
+
+Exemplo:
+
+```text
+tenant_id
+created_at
+valid_until
+```
+
+Models Laravel utilizarão nomenclatura singular:
+
+```text
+Tenant
+User
+Company
+Establishment
+Worker
+RiskAssessment
+Document
+DocumentVersion
+```
+
+---
+
+# 10. Resultado
+
+O Dicionário de Dados estabelece a referência básica para:
+
+* criação das migrations;
+* criação dos Models Eloquent;
+* definição das Foreign Keys;
+* criação dos relacionamentos;
+* desenvolvimento dos Services;
+* construção das APIs;
+* testes.
+
+**Próxima etapa: ETAPA 14 — Regras de Integridade e Relacionamentos do Banco.**
