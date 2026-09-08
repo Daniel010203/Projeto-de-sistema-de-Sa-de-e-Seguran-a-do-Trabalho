@@ -1,0 +1,1017 @@
+Perfeito. Vamos retomar exatamente do ponto em que paramos.
+
+# FASE 1 — ENGENHARIA DE REQUISITOS
+
+# ETAPA 3 — ESCOPO DO SISTEMA
+
+Nesta etapa vamos transformar a visão do produto em uma delimitação clara do que a plataforma deverá fazer.
+
+O objetivo é evitar um dos maiores riscos de projetos grandes:
+
+> **Scope Creep — crescimento descontrolado do escopo.**
+
+Como a plataforma SST possui potencial para dezenas de módulos, precisamos separar desde agora:
+
+1. Escopo total do produto;
+2. Escopo do MVP;
+3. Módulos prioritários;
+4. Funcionalidades futuras;
+5. Fora do escopo;
+6. Dependências entre módulos;
+7. Roadmap de releases.
+
+---
+
+# 1. Declaração de Escopo do Produto
+
+A plataforma será uma solução SaaS Web para gestão integrada de Saúde e Segurança do Trabalho.
+
+O sistema deverá permitir que empresas centralizem informações relacionadas a:
+
+* estrutura organizacional;
+* trabalhadores;
+* riscos ocupacionais;
+* programas de SST;
+* saúde ocupacional;
+* Normas Regulamentadoras;
+* documentos;
+* treinamentos;
+* EPIs;
+* acidentes;
+* conformidade;
+* indicadores;
+* auditoria.
+
+A plataforma será construída utilizando uma arquitetura modular, permitindo evolução progressiva sem necessidade de reconstrução do núcleo do sistema.
+
+---
+
+# 2. Escopo Funcional Macro
+
+A plataforma será organizada em seis grandes domínios.
+
+```text
+                    PLATAFORMA SST
+                          │
+       ┌──────────────────┼──────────────────┐
+       │                  │                  │
+    PLATAFORMA        ORGANIZAÇÃO           SST
+       │                  │                  │
+       │                  │          ┌───────┼────────┐
+       │                  │          │       │        │
+       │                PESSOAS   RISCOS   SAÚDE   SEGURANÇA
+       │
+       └───────────────┬───────────────────────┐
+                       │                       │
+                  DOCUMENTOS               GESTÃO
+                       │                       │
+                       └───────────┬───────────┘
+                                   │
+                              INDICADORES
+```
+
+Os domínios principais serão:
+
+1. Plataforma SaaS;
+2. Organização;
+3. Pessoas;
+4. Segurança do Trabalho;
+5. Saúde Ocupacional;
+6. Gestão, Documentos e Compliance.
+
+---
+
+# 3. Módulos Oficiais da Plataforma
+
+## M01 — Plataforma SaaS
+
+Responsável pela administração estrutural da solução.
+
+### Funcionalidades
+
+* gestão de tenants;
+* administração global;
+* planos;
+* limites de utilização;
+* configurações globais;
+* monitoramento;
+* gestão de assinaturas futuramente.
+
+### Usuário principal
+
+**Super Admin.**
+
+---
+
+# M02 — Identidade e Acesso (IAM)
+
+Responsável pela segurança de acesso.
+
+### Funcionalidades
+
+* autenticação;
+* login;
+* logout;
+* recuperação de senha;
+* MFA;
+* gerenciamento de sessões;
+* usuários;
+* perfis;
+* permissões;
+* RBAC;
+* controle de escopo;
+* trilha de acesso.
+
+### Modelo
+
+```text
+USER
+  │
+  ▼
+ROLE
+  │
+  ▼
+PERMISSION
+  │
+  ▼
+SCOPE
+```
+
+---
+
+# M03 — Gestão Organizacional
+
+Representará a estrutura das empresas.
+
+### Entidades
+
+```text
+Tenant
+   │
+   ▼
+Empresa
+   │
+   ▼
+Estabelecimento
+   │
+   ▼
+Setor
+   │
+   ├── Cargo
+   │
+   └── Função
+```
+
+### Funcionalidades
+
+* cadastro de empresas;
+* múltiplos estabelecimentos;
+* setores;
+* cargos;
+* funções;
+* estrutura organizacional;
+* histórico de alterações.
+
+---
+
+# M04 — Gestão de Trabalhadores
+
+Um dos módulos centrais.
+
+### Funcionalidades
+
+* cadastro;
+* dados profissionais;
+* vínculo;
+* função;
+* cargo;
+* setor;
+* movimentações;
+* histórico;
+* transferências;
+* alterações de função;
+* desligamento;
+* documentos relacionados.
+
+### Conceito
+
+Cada trabalhador possuirá um:
+
+# Dossiê Ocupacional Digital
+
+```text
+TRABALHADOR
+│
+├── Dados
+├── Histórico
+├── Funções
+├── Setores
+├── Riscos
+├── Exames
+├── ASOs
+├── EPIs
+├── Treinamentos
+├── Acidentes
+└── Documentos
+```
+
+---
+
+# M05 — Gestão de Perigos e Riscos
+
+Será o núcleo técnico da plataforma.
+
+### Funcionalidades
+
+* cadastro de perigos;
+* identificação de riscos;
+* agentes;
+* fontes geradoras;
+* grupos expostos;
+* avaliações;
+* probabilidade;
+* severidade;
+* matriz de risco;
+* classificação;
+* medidas de controle;
+* responsáveis.
+
+### Estrutura conceitual
+
+```text
+PERIGO
+   ↓
+EVENTO PERIGOSO
+   ↓
+RISCO
+   ↓
+EXPOSTO
+   ↓
+AVALIAÇÃO
+   ↓
+NÍVEL DE RISCO
+   ↓
+CONTROLE
+```
+
+Este módulo será utilizado posteriormente pelo:
+
+* PGR;
+* PCMSO;
+* LTCAT;
+* PPP;
+* eSocial;
+* indicadores.
+
+---
+
+# M06 — GRO / PGR
+
+Primeiro módulo regulatório prioritário.
+
+### Funcionalidades
+
+* inventário de riscos;
+* avaliação;
+* matriz;
+* classificação;
+* grupos homogêneos;
+* medidas de prevenção;
+* plano de ação;
+* responsáveis;
+* prazos;
+* acompanhamento;
+* revisão;
+* histórico;
+* geração documental.
+
+### Fluxo
+
+```text
+PERIGOS
+   ↓
+IDENTIFICAÇÃO
+   ↓
+AVALIAÇÃO
+   ↓
+CLASSIFICAÇÃO
+   ↓
+CONTROLE
+   ↓
+PLANO DE AÇÃO
+   ↓
+MONITORAMENTO
+```
+
+---
+
+# M07 — Saúde Ocupacional
+
+Domínio responsável pelas informações de saúde ocupacional.
+
+### Funcionalidades futuras
+
+* programas de saúde;
+* exames;
+* agenda;
+* convocação;
+* acompanhamento;
+* ASO;
+* aptidão;
+* vencimentos;
+* histórico ocupacional.
+
+### Submódulos
+
+```text
+SAÚDE
+│
+├── PCMSO
+├── Exames
+├── Agenda
+├── ASO
+├── Clínicas
+└── Indicadores
+```
+
+---
+
+# M08 — CIPA / NR-05
+
+Módulo especializado.
+
+### Funcionalidades
+
+```text
+CIPA
+│
+├── Dimensionamento
+├── Constituição
+├── Edital
+├── Inscrições
+├── Candidatos
+├── Eleição
+├── Apuração
+├── Resultado
+├── Posse
+├── Treinamentos
+├── Reuniões
+├── Atas
+├── Plano de Trabalho
+└── Histórico
+```
+
+---
+
+# M09 — Gestão de EPI
+
+### Funcionalidades
+
+* cadastro;
+* catálogo;
+* CA;
+* fabricante;
+* estoque;
+* entrega;
+* devolução;
+* validade;
+* histórico;
+* responsabilidade;
+* comprovantes.
+
+### Fluxo
+
+```text
+EPI
+ │
+ ▼
+ESTOQUE
+ │
+ ▼
+ENTREGA
+ │
+ ▼
+TRABALHADOR
+ │
+ ▼
+HISTÓRICO
+```
+
+---
+
+# M10 — Gestão de Treinamentos
+
+### Funcionalidades
+
+* catálogo;
+* cursos;
+* NRs relacionadas;
+* turmas;
+* participantes;
+* certificados;
+* validade;
+* vencimentos;
+* reciclagens;
+* histórico.
+
+---
+
+# M11 — Gestão de Acidentes e Incidentes
+
+### Funcionalidades
+
+* registro;
+* classificação;
+* investigação;
+* causas;
+* fatores;
+* plano de ação;
+* evidências;
+* indicadores;
+* CAT.
+
+### Fluxo
+
+```text
+OCORRÊNCIA
+    ↓
+REGISTRO
+    ↓
+INVESTIGAÇÃO
+    ↓
+CAUSAS
+    ↓
+AÇÕES
+    ↓
+ACOMPANHAMENTO
+    ↓
+INDICADORES
+```
+
+---
+
+# M12 — Gestão Documental
+
+Este será um dos diferenciais do sistema.
+
+### Funcionalidades
+
+* templates;
+* variáveis;
+* geração;
+* armazenamento;
+* versionamento;
+* aprovação;
+* validade;
+* histórico;
+* download;
+* controle de acesso.
+
+### Arquitetura conceitual
+
+```text
+DADOS
+  │
+  ▼
+TEMPLATE
+  │
+  ▼
+DOCUMENT ENGINE
+  │
+  ▼
+PDF
+  │
+  ▼
+STORAGE
+  │
+  ▼
+AUDITORIA
+```
+
+---
+
+# M13 — Compliance
+
+Módulo para gestão de requisitos.
+
+### Funcionalidades
+
+* requisitos legais;
+* NRs;
+* obrigações;
+* evidências;
+* avaliação;
+* conformidade;
+* não conformidades;
+* planos de ação;
+* auditorias.
+
+---
+
+# M14 — Notificações
+
+### Funcionalidades
+
+* notificações internas;
+* alertas;
+* e-mail;
+* lembretes;
+* vencimentos;
+* tarefas automáticas.
+
+---
+
+# M15 — Indicadores e Analytics
+
+### Funcionalidades
+
+* dashboards;
+* KPIs;
+* gráficos;
+* filtros;
+* relatórios;
+* exportação.
+
+---
+
+# M16 — Auditoria
+
+Responsável pela rastreabilidade.
+
+### Informações
+
+```text
+AUDITORIA
+
+Quem?
+Quando?
+O quê?
+Antes?
+Depois?
+De onde?
+```
+
+Registros como:
+
+* criação;
+* alteração;
+* exclusão lógica;
+* aprovação;
+* exportação;
+* login;
+* tentativas de acesso.
+
+---
+
+# M17 — Integrações
+
+Módulo futuro.
+
+### Possíveis integrações
+
+* eSocial;
+* APIs;
+* clínicas;
+* laboratórios;
+* sistemas de RH;
+* ERP;
+* assinatura eletrônica;
+* e-mail;
+* armazenamento externo.
+
+---
+
+# 4. Dependência entre os módulos
+
+Agora um ponto crítico: os módulos não podem ser desenvolvidos aleatoriamente.
+
+Existe uma cadeia de dependência.
+
+```text
+M01 Plataforma
+      │
+      ▼
+M02 IAM
+      │
+      ▼
+M03 Organização
+      │
+      ▼
+M04 Trabalhadores
+      │
+      ▼
+M05 Riscos
+      │
+      ├─────────────┐
+      ▼             ▼
+M06 PGR         M07 Saúde
+      │             │
+      │             ▼
+      │          PCMSO
+      │
+      ├──────┬──────┬─────────┐
+      ▼      ▼      ▼         ▼
+     EPI   CIPA  Treinamento Acidentes
+      │      │      │         │
+      └──────┴──────┴─────────┘
+                    │
+                    ▼
+               Documentos
+                    │
+                    ▼
+               Indicadores
+```
+
+Isso será nossa referência para o roadmap técnico.
+
+---
+
+# 5. Definição do MVP
+
+Agora vamos separar o produto completo do primeiro produto utilizável.
+
+## MVP 1 — Fundação da Plataforma
+
+### Incluído
+
+#### Plataforma
+
+* multi-tenancy básico;
+* autenticação;
+* usuários;
+* perfis;
+* permissões.
+
+#### Organização
+
+* empresa;
+* estabelecimento;
+* setor;
+* cargo;
+* função.
+
+#### Trabalhadores
+
+* cadastro;
+* vínculo organizacional;
+* histórico básico.
+
+#### Riscos
+
+* perigos;
+* riscos;
+* avaliações;
+* matriz básica;
+* controles.
+
+#### PGR
+
+* inventário de riscos;
+* plano de ação básico;
+* acompanhamento.
+
+#### Gestão
+
+* dashboard inicial;
+* notificações básicas;
+* auditoria.
+
+#### Documentos
+
+* armazenamento;
+* upload;
+* download;
+* versionamento básico.
+
+---
+
+# 6. O que NÃO entra no MVP 1
+
+Para proteger o projeto contra excesso de escopo:
+
+* PCMSO completo;
+* ASO;
+* prontuário clínico;
+* CIPA completa;
+* integração eSocial;
+* gestão completa de EPI;
+* gestão completa de treinamentos;
+* inteligência artificial;
+* aplicativo mobile;
+* billing automatizado;
+* marketplace;
+* microsserviços;
+* Kubernetes.
+
+Esses itens serão planejados como releases posteriores.
+
+---
+
+# 7. Roadmap de Releases
+
+## Release 1 — Foundation
+
+```text
+Multi-Tenant
+IAM
+Empresas
+Estabelecimentos
+Setores
+Usuários
+```
+
+---
+
+## Release 2 — Core SST
+
+```text
+Trabalhadores
+Cargos
+Funções
+Histórico
+Movimentações
+```
+
+---
+
+## Release 3 — Gestão de Riscos
+
+```text
+Perigos
+Riscos
+Avaliação
+Matriz
+Controles
+```
+
+---
+
+## Release 4 — GRO/PGR
+
+```text
+Inventário
+Plano de Ação
+Monitoramento
+Documento PGR
+```
+
+---
+
+## Release 5 — Gestão Documental
+
+```text
+Templates
+Versionamento
+PDF
+Storage
+```
+
+---
+
+## Release 6 — Saúde Ocupacional
+
+```text
+PCMSO
+Exames
+Agenda
+ASO
+```
+
+---
+
+## Release 7 — Gestão Operacional SST
+
+```text
+EPI
+Treinamentos
+Inspeções
+Checklists
+```
+
+---
+
+## Release 8 — NR-05 / CIPA
+
+```text
+Dimensionamento
+Eleição
+Atas
+Reuniões
+Plano
+```
+
+---
+
+## Release 9 — Acidentes
+
+```text
+Ocorrências
+Investigação
+CAT
+Ações
+Indicadores
+```
+
+---
+
+## Release 10 — Compliance e Integrações
+
+```text
+Requisitos Legais
+Auditorias
+eSocial
+APIs
+```
+
+---
+
+# 8. Priorização estratégica
+
+Utilizaremos uma abordagem semelhante ao modelo **MoSCoW**.
+
+## MUST HAVE — Obrigatório para o MVP
+
+* Multi-tenancy;
+* autenticação;
+* autorização;
+* empresas;
+* estabelecimentos;
+* setores;
+* trabalhadores;
+* riscos;
+* PGR básico;
+* auditoria.
+
+## SHOULD HAVE — Alta prioridade posterior
+
+* gestão documental avançada;
+* notificações;
+* dashboards avançados;
+* EPI;
+* treinamentos.
+
+## COULD HAVE — Futuro
+
+* IA;
+* chatbot;
+* análises preditivas;
+* aplicativo mobile.
+
+## WON'T HAVE — Inicialmente
+
+* marketplace;
+* microsserviços completos;
+* Kubernetes;
+* ERP completo;
+* gestão financeira empresarial.
+
+---
+
+# 9. Fronteiras do Sistema
+
+A SST360 será responsável por:
+
+```text
+GESTÃO
++
+PROCESSOS
++
+DOCUMENTOS
++
+CONTROLES
++
+INDICADORES
+```
+
+Mas inicialmente **não será**:
+
+* sistema completo de folha de pagamento;
+* ERP;
+* prontuário médico hospitalar;
+* sistema financeiro;
+* sistema de gestão empresarial geral.
+
+Isso é fundamental.
+
+A plataforma deverá **integrar-se com esses sistemas futuramente**, e não substituí-los.
+
+---
+
+# 10. Escopo técnico inicial
+
+Também precisamos delimitar a complexidade técnica.
+
+### Arquitetura inicial
+
+```text
+Monorepo
+│
+├── apps
+│   ├── web
+│   └── api
+│
+├── packages
+│   ├── shared-types
+│   ├── eslint-config
+│   └── ui
+│
+├── infrastructure
+│
+└── docs
+```
+
+### Estratégia arquitetural
+
+Inicialmente:
+
+> **Monólito Modular**
+
+Não iniciaremos com microsserviços.
+
+Isso permitirá:
+
+* desenvolvimento mais rápido;
+* menor custo;
+* testes mais simples;
+* menor complexidade operacional;
+* evolução posterior.
+
+---
+
+# 11. Critérios para considerar o MVP funcional
+
+O MVP estará funcional quando for possível executar este fluxo completo:
+
+```text
+1. Criar Empresa
+        ↓
+2. Criar Estabelecimento
+        ↓
+3. Criar Setor
+        ↓
+4. Criar Cargo/Função
+        ↓
+5. Cadastrar Trabalhador
+        ↓
+6. Identificar Perigo
+        ↓
+7. Registrar Risco
+        ↓
+8. Realizar Avaliação
+        ↓
+9. Definir Controle
+        ↓
+10. Criar Plano de Ação
+        ↓
+11. Acompanhar Pendências
+        ↓
+12. Consultar Dashboard
+```
+
+Esse fluxo será nosso primeiro **E2E Business Flow**.
+
+---
+
+# 12. Resultado da Etapa 3
+
+Agora temos formalmente:
+
+* 17 módulos identificados;
+* escopo completo do produto;
+* escopo do MVP;
+* itens fora do MVP;
+* dependências entre módulos;
+* roadmap inicial;
+* fronteiras do sistema;
+* fluxo de negócio prioritário.
+
+## Status da Engenharia de Requisitos
+
+| Etapa                         | Status    |
+| ----------------------------- | --------- |
+| 1. Visão do Produto           | ✅         |
+| 2. Stakeholders e Personas    | ✅         |
+| 3. Escopo do Sistema          | ✅         |
+| 4. Requisitos Funcionais      | ⏳ Próxima |
+| 5. Requisitos Não Funcionais  | ⏳         |
+| 6. Regras de Negócio          | ⏳         |
+| 7. Casos de Uso               | ⏳         |
+| 8. User Stories / Backlog     | ⏳         |
+| 9. Critérios de Aceitação     | ⏳         |
+| 10. Matriz de Rastreabilidade | ⏳         |
+
+# Próxima etapa — ETAPA 4: REQUISITOS FUNCIONAIS
+
+Na próxima etapa vamos começar a especificação formal do sistema utilizando identificadores como:
+
+```text
+RF-001 — O sistema deve permitir cadastrar empresas.
+
+RF-002 — O sistema deve permitir cadastrar estabelecimentos.
+
+RF-003 — O sistema deve permitir cadastrar setores.
+```
+
+Vamos organizar os requisitos por módulos e, principalmente, identificar **prioridade, dependências e relação com o MVP**.
+
+Esse documento será a principal referência para arquitetura, banco de dados, APIs e desenvolvimento da plataforma.
