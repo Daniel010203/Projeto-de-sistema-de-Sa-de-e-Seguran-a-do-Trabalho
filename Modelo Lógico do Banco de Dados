@@ -1,0 +1,375 @@
+# ETAPA 12 — Modelo Lógico do Banco de Dados
+
+**Projeto:** SST360
+**Banco:** MySQL
+**ORM:** Laravel Eloquent
+**Versão:** 1.0
+
+## 1. Padrões
+
+Todas as tabelas deverão utilizar, quando aplicável:
+
+* `id` como chave primária;
+* `created_at`;
+* `updated_at`;
+* `deleted_at` quando houver exclusão lógica;
+* `tenant_id` nas entidades diretamente pertencentes ao cliente.
+
+---
+
+# 2. SaaS
+
+## `tenants`
+
+| Campo      | Tipo         | Regra    |
+| ---------- | ------------ | -------- |
+| id         | BIGINT       | PK       |
+| name       | VARCHAR(150) | NOT NULL |
+| document   | VARCHAR(20)  | UNIQUE   |
+| status     | VARCHAR(30)  | NOT NULL |
+| created_at | TIMESTAMP    |          |
+| updated_at | TIMESTAMP    |          |
+
+---
+
+# 3. IAM
+
+## `users`
+
+| Campo      | Tipo         | Regra    |
+| ---------- | ------------ | -------- |
+| id         | BIGINT       | PK       |
+| tenant_id  | BIGINT       | FK       |
+| name       | VARCHAR(150) | NOT NULL |
+| email      | VARCHAR(150) | UNIQUE   |
+| password   | VARCHAR(255) | NOT NULL |
+| status     | VARCHAR(30)  | NOT NULL |
+| created_at | TIMESTAMP    |          |
+| updated_at | TIMESTAMP    |          |
+
+## `roles`
+
+| Campo      | Tipo         | Regra    |
+| ---------- | ------------ | -------- |
+| id         | BIGINT       | PK       |
+| tenant_id  | BIGINT       | FK       |
+| name       | VARCHAR(100) | NOT NULL |
+| created_at | TIMESTAMP    |          |
+| updated_at | TIMESTAMP    |          |
+
+## `permissions`
+
+| Campo       | Tipo         | Regra  |
+| ----------- | ------------ | ------ |
+| id          | BIGINT       | PK     |
+| name        | VARCHAR(100) | UNIQUE |
+| description | VARCHAR(255) |        |
+| created_at  | TIMESTAMP    |        |
+| updated_at  | TIMESTAMP    |        |
+
+As relações entre usuários, roles e permissions serão implementadas posteriormente através de tabelas intermediárias.
+
+---
+
+# 4. Organização
+
+## `companies`
+
+| Campo      | Tipo         | Regra    |
+| ---------- | ------------ | -------- |
+| id         | BIGINT       | PK       |
+| tenant_id  | BIGINT       | FK       |
+| name       | VARCHAR(150) | NOT NULL |
+| document   | VARCHAR(20)  | NOT NULL |
+| status     | VARCHAR(30)  | NOT NULL |
+| created_at | TIMESTAMP    |          |
+| updated_at | TIMESTAMP    |          |
+
+## `establishments`
+
+| Campo      | Tipo         | Regra    |
+| ---------- | ------------ | -------- |
+| id         | BIGINT       | PK       |
+| company_id | BIGINT       | FK       |
+| name       | VARCHAR(150) | NOT NULL |
+| identifier | VARCHAR(50)  |          |
+| status     | VARCHAR(30)  | NOT NULL |
+| created_at | TIMESTAMP    |          |
+| updated_at | TIMESTAMP    |          |
+
+## `sectors`
+
+| Campo            | Tipo         | Regra    |
+| ---------------- | ------------ | -------- |
+| id               | BIGINT       | PK       |
+| establishment_id | BIGINT       | FK       |
+| name             | VARCHAR(150) | NOT NULL |
+| status           | VARCHAR(30)  | NOT NULL |
+| created_at       | TIMESTAMP    |          |
+| updated_at       | TIMESTAMP    |          |
+
+## `positions`
+
+| Campo       | Tipo         | Regra    |
+| ----------- | ------------ | -------- |
+| id          | BIGINT       | PK       |
+| tenant_id   | BIGINT       | FK       |
+| name        | VARCHAR(150) | NOT NULL |
+| description | TEXT         |          |
+| status      | VARCHAR(30)  | NOT NULL |
+| created_at  | TIMESTAMP    |          |
+| updated_at  | TIMESTAMP    |          |
+
+---
+
+# 5. Trabalhadores
+
+## `workers`
+
+| Campo      | Tipo         | Regra    |
+| ---------- | ------------ | -------- |
+| id         | BIGINT       | PK       |
+| tenant_id  | BIGINT       | FK       |
+| name       | VARCHAR(150) | NOT NULL |
+| document   | VARCHAR(20)  | NOT NULL |
+| birth_date | DATE         |          |
+| status     | VARCHAR(30)  | NOT NULL |
+| created_at | TIMESTAMP    |          |
+| updated_at | TIMESTAMP    |          |
+
+## `worker_allocations`
+
+| Campo       | Tipo      | Regra    |
+| ----------- | --------- | -------- |
+| id          | BIGINT    | PK       |
+| worker_id   | BIGINT    | FK       |
+| sector_id   | BIGINT    | FK       |
+| position_id | BIGINT    | FK       |
+| start_date  | DATE      | NOT NULL |
+| end_date    | DATE      |          |
+| created_at  | TIMESTAMP |          |
+| updated_at  | TIMESTAMP |          |
+
+Essa tabela preservará o histórico de movimentação do trabalhador.
+
+---
+
+# 6. Perigos e Riscos
+
+## `hazards`
+
+| Campo       | Tipo         | Regra    |
+| ----------- | ------------ | -------- |
+| id          | BIGINT       | PK       |
+| tenant_id   | BIGINT       | FK       |
+| name        | VARCHAR(150) | NOT NULL |
+| category    | VARCHAR(50)  | NOT NULL |
+| description | TEXT         |          |
+| created_at  | TIMESTAMP    |          |
+| updated_at  | TIMESTAMP    |          |
+
+## `risks`
+
+| Campo       | Tipo         | Regra    |
+| ----------- | ------------ | -------- |
+| id          | BIGINT       | PK       |
+| tenant_id   | BIGINT       | FK       |
+| hazard_id   | BIGINT       | FK       |
+| name        | VARCHAR(150) | NOT NULL |
+| description | TEXT         |          |
+| created_at  | TIMESTAMP    |          |
+| updated_at  | TIMESTAMP    |          |
+
+## `risk_assessments`
+
+| Campo          | Tipo        | Regra    |
+| -------------- | ----------- | -------- |
+| id             | BIGINT      | PK       |
+| tenant_id      | BIGINT      | FK       |
+| risk_id        | BIGINT      | FK       |
+| sector_id      | BIGINT      | FK       |
+| probability    | INT         | NOT NULL |
+| severity       | INT         | NOT NULL |
+| score          | INT         | NOT NULL |
+| classification | VARCHAR(50) | NOT NULL |
+| assessed_at    | DATE        | NOT NULL |
+| created_at     | TIMESTAMP   |          |
+| updated_at     | TIMESTAMP   |          |
+
+---
+
+# 7. Controles
+
+## `controls`
+
+| Campo              | Tipo        | Regra    |
+| ------------------ | ----------- | -------- |
+| id                 | BIGINT      | PK       |
+| tenant_id          | BIGINT      | FK       |
+| risk_assessment_id | BIGINT      | FK       |
+| type               | VARCHAR(50) | NOT NULL |
+| description        | TEXT        | NOT NULL |
+| status             | VARCHAR(30) | NOT NULL |
+| created_at         | TIMESTAMP   |          |
+| updated_at         | TIMESTAMP   |          |
+
+---
+
+# 8. PGR
+
+## `pgrs`
+
+| Campo            | Tipo        | Regra    |
+| ---------------- | ----------- | -------- |
+| id               | BIGINT      | PK       |
+| tenant_id        | BIGINT      | FK       |
+| establishment_id | BIGINT      | FK       |
+| version          | VARCHAR(20) | NOT NULL |
+| status           | VARCHAR(30) | NOT NULL |
+| valid_from       | DATE        |          |
+| valid_until      | DATE        |          |
+| approved_at      | TIMESTAMP   |          |
+| created_at       | TIMESTAMP   |          |
+| updated_at       | TIMESTAMP   |          |
+
+## `risk_inventories`
+
+| Campo              | Tipo      | Regra |
+| ------------------ | --------- | ----- |
+| id                 | BIGINT    | PK    |
+| pgr_id             | BIGINT    | FK    |
+| risk_assessment_id | BIGINT    | FK    |
+| created_at         | TIMESTAMP |       |
+| updated_at         | TIMESTAMP |       |
+
+## `action_plans`
+
+| Campo          | Tipo        | Regra    |
+| -------------- | ----------- | -------- |
+| id             | BIGINT      | PK       |
+| tenant_id      | BIGINT      | FK       |
+| pgr_id         | BIGINT      | FK       |
+| description    | TEXT        | NOT NULL |
+| responsible_id | BIGINT      |          |
+| due_date       | DATE        |          |
+| status         | VARCHAR(30) | NOT NULL |
+| completed_at   | TIMESTAMP   |          |
+| created_at     | TIMESTAMP   |          |
+| updated_at     | TIMESTAMP   |          |
+
+---
+
+# 9. Documentos
+
+## `documents`
+
+| Campo              | Tipo         | Regra    |
+| ------------------ | ------------ | -------- |
+| id                 | BIGINT       | PK       |
+| tenant_id          | BIGINT       | FK       |
+| document_type      | VARCHAR(50)  | NOT NULL |
+| title              | VARCHAR(200) | NOT NULL |
+| status             | VARCHAR(30)  | NOT NULL |
+| classification     | VARCHAR(30)  | NOT NULL |
+| current_version_id | BIGINT       |          |
+| created_at         | TIMESTAMP    |          |
+| updated_at         | TIMESTAMP    |          |
+
+## `document_versions`
+
+| Campo       | Tipo         | Regra    |
+| ----------- | ------------ | -------- |
+| id          | BIGINT       | PK       |
+| document_id | BIGINT       | FK       |
+| version     | VARCHAR(20)  | NOT NULL |
+| file_path   | VARCHAR(500) | NOT NULL |
+| file_name   | VARCHAR(255) | NOT NULL |
+| mime_type   | VARCHAR(100) |          |
+| file_size   | BIGINT       |          |
+| created_by  | BIGINT       | FK       |
+| created_at  | TIMESTAMP    |          |
+
+---
+
+# 10. Auditoria
+
+## `audit_logs`
+
+| Campo       | Tipo         | Regra    |
+| ----------- | ------------ | -------- |
+| id          | BIGINT       | PK       |
+| tenant_id   | BIGINT       | FK       |
+| user_id     | BIGINT       | FK       |
+| action      | VARCHAR(50)  | NOT NULL |
+| entity_type | VARCHAR(100) | NOT NULL |
+| entity_id   | BIGINT       |          |
+| ip_address  | VARCHAR(45)  |          |
+| created_at  | TIMESTAMP    | NOT NULL |
+
+---
+
+# 11. Índices essenciais
+
+Deverão receber atenção especial:
+
+```text
+tenant_id
+company_id
+establishment_id
+sector_id
+worker_id
+risk_id
+pgr_id
+document_id
+created_at
+status
+```
+
+Também deverão existir índices compostos quando necessários para consultas multi-tenant.
+
+Exemplo:
+
+```text
+(tenant_id, status)
+(tenant_id, created_at)
+(tenant_id, document_type)
+```
+
+---
+
+# 12. Integridade
+
+As Foreign Keys deverão impedir:
+
+* registros órfãos;
+* vínculos entre tenants diferentes;
+* exclusões indevidas de dados históricos.
+
+As regras de negócio mais complexas permanecerão na aplicação Laravel, não apenas no banco.
+
+---
+
+# 13. Observação importante
+
+Este é o **modelo lógico inicial**.
+
+Não devemos criar as migrations ainda.
+
+Antes disso, será necessário validar:
+
+* nomenclatura;
+* cardinalidades;
+* chaves;
+* campos obrigatórios;
+* relacionamentos;
+* estratégia de histórico;
+* estratégia de permissões;
+* estratégia de tenant.
+
+Após essa validação, o modelo poderá ser convertido em migrations Laravel.
+
+# Resultado
+
+Temos agora a estrutura lógica inicial do MySQL para o **MVP do SST360**.
+
+**Próxima etapa: ETAPA 13 — Dicionário de Dados**, com uma descrição curta do significado de cada tabela e dos campos realmente importantes.
