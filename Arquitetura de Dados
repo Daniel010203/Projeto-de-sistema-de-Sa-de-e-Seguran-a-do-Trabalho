@@ -1,0 +1,468 @@
+# ETAPA 10 — Arquitetura de Dados
+
+**Projeto:** SST360 — Plataforma SaaS de Gestão de SST
+**Banco:** MySQL
+**ORM:** Laravel Eloquent
+
+## 1. Estrutura principal
+
+O banco será organizado em torno de:
+
+```text
+TENANT
+  ↓
+EMPRESA
+  ↓
+ESTABELECIMENTO
+  ↓
+SETOR
+  ↓
+TRABALHADOR
+```
+
+Os processos de SST serão relacionados a essa estrutura.
+
+---
+
+## 2. Entidades principais
+
+| Grupo         | Entidades                                     |
+| ------------- | --------------------------------------------- |
+| SaaS          | tenants                                       |
+| IAM           | users, roles, permissions                     |
+| Organização   | companies, establishments, sectors, positions |
+| Trabalhadores | workers, worker_allocations                   |
+| Riscos        | hazards, risks, risk_assessments, controls    |
+| PGR           | pgrs, risk_inventories, action_plans          |
+| Documentos    | documents, document_versions                  |
+| Notificações  | notifications                                 |
+| Auditoria     | audit_logs                                    |
+| Indicadores   | indicators, indicator_results                 |
+
+---
+
+## 3. Relacionamentos principais
+
+```text
+Tenant
+ └── Company
+      └── Establishment
+           └── Sector
+                ├── Position
+                └── Worker
+                     │
+                     └── Worker Allocation
+```
+
+Riscos:
+
+```text
+Sector
+   ↓
+Hazard
+   ↓
+Risk
+   ↓
+Risk Assessment
+   ↓
+Control
+   ↓
+Action Plan
+```
+
+PGR:
+
+```text
+PGR
+ ├── Risk Inventory
+ ├── Risk Assessments
+ └── Action Plans
+```
+
+Documentos:
+
+```text
+Document
+ └── Document Versions
+       └── File Storage
+```
+
+---
+
+## 4. Multi-tenancy
+
+As tabelas pertencentes ao cliente deverão possuir:
+
+```text
+tenant_id
+```
+
+Exemplo:
+
+```text
+workers
+---------
+id
+tenant_id
+name
+cpf
+status
+created_at
+updated_at
+```
+
+O `tenant_id` será uma das principais barreiras de isolamento dos dados.
+
+---
+
+## 5. Principais tabelas
+
+### tenants
+
+Representa o cliente do SaaS.
+
+```text
+id
+name
+document
+status
+created_at
+updated_at
+```
+
+### users
+
+Usuários que acessam a plataforma.
+
+```text
+id
+tenant_id
+name
+email
+password
+status
+created_at
+updated_at
+```
+
+### companies
+
+Empresas administradas pelo tenant.
+
+```text
+id
+tenant_id
+name
+document
+status
+```
+
+### establishments
+
+Estabelecimentos da empresa.
+
+```text
+id
+company_id
+name
+identifier
+status
+```
+
+### sectors
+
+Setores dos estabelecimentos.
+
+```text
+id
+establishment_id
+name
+status
+```
+
+### positions
+
+Cargos/funções.
+
+```text
+id
+tenant_id
+name
+description
+status
+```
+
+### workers
+
+Trabalhadores.
+
+```text
+id
+tenant_id
+name
+document
+birth_date
+status
+```
+
+### worker_allocations
+
+Histórico de alocação.
+
+```text
+id
+worker_id
+sector_id
+position_id
+start_date
+end_date
+```
+
+---
+
+## 6. Riscos
+
+### hazards
+
+Catálogo de perigos.
+
+```text
+id
+tenant_id
+name
+category
+description
+```
+
+### risks
+
+Riscos relacionados aos perigos.
+
+```text
+id
+tenant_id
+hazard_id
+name
+description
+```
+
+### risk_assessments
+
+Avaliações dos riscos.
+
+```text
+id
+tenant_id
+risk_id
+sector_id
+probability
+severity
+score
+classification
+assessed_at
+```
+
+### controls
+
+Medidas de controle.
+
+```text
+id
+tenant_id
+risk_assessment_id
+type
+description
+status
+```
+
+---
+
+## 7. PGR
+
+### pgrs
+
+```text
+id
+tenant_id
+establishment_id
+version
+status
+valid_from
+valid_until
+approved_at
+```
+
+### risk_inventories
+
+```text
+id
+pgr_id
+risk_assessment_id
+```
+
+### action_plans
+
+```text
+id
+tenant_id
+pgr_id
+description
+responsible_id
+due_date
+status
+completed_at
+```
+
+---
+
+## 8. Documentos
+
+### documents
+
+Representa o documento lógico.
+
+```text
+id
+tenant_id
+document_type
+title
+status
+classification
+current_version_id
+```
+
+### document_versions
+
+Representa cada versão.
+
+```text
+id
+document_id
+version
+file_path
+file_name
+mime_type
+file_size
+created_by
+created_at
+```
+
+O arquivo físico não será armazenado no MySQL.
+
+---
+
+## 9. Auditoria
+
+### audit_logs
+
+```text
+id
+tenant_id
+user_id
+action
+entity_type
+entity_id
+ip_address
+created_at
+```
+
+Registrar principalmente:
+
+* criação;
+* alteração;
+* exclusão lógica;
+* aprovação;
+* acesso a informações sensíveis;
+* download de documentos;
+* alterações de permissões.
+
+---
+
+## 10. Regras de integridade
+
+O banco deverá utilizar:
+
+* Primary Keys;
+* Foreign Keys;
+* índices;
+* Unique Constraints;
+* NOT NULL quando aplicável;
+* timestamps;
+* Soft Deletes quando necessário.
+
+Não deverá existir exclusão física de informações que sejam necessárias para histórico ou auditoria.
+
+---
+
+## 11. Estratégia de evolução
+
+Não criaremos todas as tabelas do SST360 de uma vez.
+
+A implementação será incremental:
+
+```text
+FASE 1
+Tenant + IAM
+       ↓
+FASE 2
+Organização
+       ↓
+FASE 3
+Trabalhadores
+       ↓
+FASE 4
+Riscos
+       ↓
+FASE 5
+PGR
+       ↓
+FASE 6
+Documentos
+       ↓
+FASE 7
+Demais módulos SST
+```
+
+Isso reduz complexidade e facilita os testes.
+
+---
+
+## 12. Princípio central
+
+O modelo de dados deverá seguir:
+
+> **Cadastrar uma informação uma vez e reutilizá-la nos processos de SST.**
+
+Exemplo:
+
+```text
+Trabalhador
+    ↓
+Exposição
+    ↓
+Risco
+    ↓
+PGR
+    ↓
+Treinamento
+    ↓
+EPI
+    ↓
+Saúde Ocupacional
+    ↓
+Indicadores
+```
+
+---
+
+## 13. Resultado
+
+A arquitetura de dados inicial está definida.
+
+**Banco:** MySQL
+**ORM:** Eloquent
+**Estratégia:** multi-tenant com `tenant_id`
+**Modelo:** relacional
+**Documentos:** metadados no MySQL + arquivos em Storage
+**Histórico:** preservado
+**Implementação:** migrations incrementais
