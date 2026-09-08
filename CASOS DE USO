@@ -1,0 +1,165 @@
+# ETAPA 7 — Casos de Uso
+
+**Projeto:** SST360 — Plataforma de Gestão de SST
+**Versão:** 1.0
+
+## 1. Atores principais
+
+| ID  | Ator               | Responsabilidade                                      |
+| --- | ------------------ | ----------------------------------------------------- |
+| A01 | Super Admin        | Administração global da plataforma                    |
+| A02 | Admin Empresa      | Administração da empresa                              |
+| A03 | Gestor SST         | Gestão dos processos de SST                           |
+| A04 | Técnico SST        | Execução das rotinas de SST                           |
+| A05 | Engenheiro SST     | Gestão técnica de SST                                 |
+| A06 | Médico do Trabalho | Gestão de saúde ocupacional                           |
+| A07 | RH                 | Gestão de trabalhadores e informações administrativas |
+| A08 | Gestor de Área     | Consulta e acompanhamento                             |
+| A09 | CIPA               | Participação nos processos da CIPA                    |
+| A10 | Auditor            | Consulta e auditoria                                  |
+| A11 | Trabalhador        | Consulta das próprias informações                     |
+
+---
+
+# 2. Casos de Uso — Núcleo do sistema
+
+| ID     | Caso de Uso                   | Atores principais       |
+| ------ | ----------------------------- | ----------------------- |
+| UC-001 | Autenticar usuário            | Todos                   |
+| UC-002 | Gerenciar usuários            | A01, A02                |
+| UC-003 | Gerenciar empresas            | A01, A02                |
+| UC-004 | Gerenciar estabelecimentos    | A02, A03                |
+| UC-005 | Gerenciar setores             | A02, A03                |
+| UC-006 | Gerenciar cargos e funções    | A02, A03, A07           |
+| UC-007 | Gerenciar trabalhadores       | A02, A03, A07           |
+| UC-008 | Gerenciar perigos e riscos    | A03, A04, A05           |
+| UC-009 | Avaliar riscos                | A03, A04, A05           |
+| UC-010 | Gerenciar medidas de controle | A03, A04, A05           |
+| UC-011 | Gerenciar PGR                 | A03, A04, A05           |
+| UC-012 | Gerenciar documentos          | A02, A03, A04, A05, A10 |
+| UC-013 | Consultar indicadores         | A02, A03, A08, A10      |
+| UC-014 | Gerenciar pendências          | A02, A03, A04, A05      |
+| UC-015 | Consultar auditoria           | A01, A02, A10           |
+
+---
+
+# 3. Casos de Uso futuros
+
+| ID     | Caso de Uso                   | Módulo       |
+| ------ | ----------------------------- | ------------ |
+| UC-101 | Gerenciar PCMSO               | Saúde        |
+| UC-102 | Gerenciar exames ocupacionais | Saúde        |
+| UC-103 | Gerenciar ASO                 | Saúde        |
+| UC-104 | Gerenciar CIPA                | CIPA         |
+| UC-105 | Gerenciar EPI                 | EPI          |
+| UC-106 | Gerenciar treinamentos        | Treinamentos |
+| UC-107 | Registrar acidente            | Acidentes    |
+| UC-108 | Gerenciar CAT                 | Acidentes    |
+| UC-109 | Gerenciar LTCAT               | Documentos   |
+| UC-110 | Gerenciar PPP                 | Documentos   |
+| UC-111 | Gerenciar requisitos das NRs  | Compliance   |
+| UC-112 | Gerenciar notificações        | Plataforma   |
+| UC-113 | Integrar sistemas externos    | Integrações  |
+| UC-114 | Integrar eSocial              | Integrações  |
+
+---
+
+# 4. Casos de Uso prioritários
+
+O MVP deverá priorizar:
+
+```text
+UC-001 Autenticar usuário
+       ↓
+UC-002 Gerenciar usuários
+       ↓
+UC-003 Gerenciar empresas
+       ↓
+UC-004 Gerenciar estabelecimentos
+       ↓
+UC-005 Gerenciar setores
+       ↓
+UC-006 Gerenciar cargos/funções
+       ↓
+UC-007 Gerenciar trabalhadores
+       ↓
+UC-008 Gerenciar perigos/riscos
+       ↓
+UC-009 Avaliar riscos
+       ↓
+UC-010 Gerenciar controles
+       ↓
+UC-011 Gerenciar PGR
+       ↓
+UC-012 Gerenciar documentos
+       ↓
+UC-013 Indicadores
+       ↓
+UC-014 Pendências
+       ↓
+UC-015 Auditoria
+```
+
+# 5. Fluxo principal do SST360
+
+```text
+Empresa
+   ↓
+Estabelecimento
+   ↓
+Setor
+   ↓
+Cargo/Função
+   ↓
+Trabalhador
+   ↓
+Perigo
+   ↓
+Risco
+   ↓
+Avaliação
+   ↓
+Medida de Controle
+   ↓
+Plano de Ação
+   ↓
+PGR
+   ↓
+Documento
+   ↓
+Indicadores / Compliance
+```
+
+# 6. Regra arquitetural
+
+Os casos de uso serão implementados no Laravel como operações de negócio.
+
+Exemplo:
+
+```text
+Controller
+    ↓
+Use Case / Service
+    ↓
+Regra de negócio
+    ↓
+Model / Eloquent
+    ↓
+MySQL
+```
+
+Os casos de uso deverão respeitar:
+
+* isolamento por tenant;
+* permissões;
+* escopo de acesso;
+* auditoria;
+* regras de negócio;
+* histórico;
+* versionamento quando aplicável.
+
+# 7. Resultado
+
+A ETAPA 7 define o **mapa funcional inicial do SST360**.
+
+Os casos de uso específicos de cada módulo serão detalhados somente quando o respectivo módulo entrar em desenvolvimento.
