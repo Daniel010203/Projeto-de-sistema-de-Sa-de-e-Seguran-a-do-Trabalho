@@ -1,0 +1,276 @@
+# ETAPA 8 — UML do SST360
+
+**Projeto:** SST360 — Plataforma de Gestão de SST
+**Versão:** 1.0
+
+## 1. Diagrama de Casos de Uso — Visão Geral
+
+```text
+                         SST360
+                           │
+       ┌───────────────────┼───────────────────┐
+       │                   │                   │
+    Gestão              Gestão SST          Auditoria
+       │                   │                   │
+       ▼                   ▼                   ▼
+┌─────────────┐     ┌──────────────┐    ┌─────────────┐
+│ Usuários    │     │ Trabalhadores│    │ Auditoria   │
+│ Empresas    │     │ Riscos       │    │ Documentos  │
+│ Estruturas  │     │ PGR          │    │ Indicadores │
+└─────────────┘     └──────────────┘    └─────────────┘
+       │                   │                   │
+       └───────────────────┼───────────────────┘
+                           ▼
+                    Banco de Dados
+```
+
+---
+
+# 2. Atores
+
+```text
+Super Admin
+     │
+     ├── Administração global
+     │
+Admin Empresa
+     │
+     ├── Empresa
+     ├── Estabelecimentos
+     └── Usuários
+     
+Gestor/Técnico/Engenheiro SST
+     │
+     ├── Trabalhadores
+     ├── Perigos
+     ├── Riscos
+     ├── Controles
+     └── PGR
+
+RH
+     │
+     ├── Trabalhadores
+     └── Cargos/Funções
+
+Auditor
+     │
+     ├── Documentos
+     ├── Indicadores
+     └── Auditoria
+```
+
+---
+
+# 3. Diagrama de domínio principal
+
+```text
+TENANT
+  │
+  └── EMPRESA
+        │
+        └── ESTABELECIMENTO
+              │
+              └── SETOR
+                    │
+                    ├── CARGO/FUNÇÃO
+                    │
+                    └── TRABALHADOR
+                              │
+                              ▼
+                           PERIGO
+                              │
+                              ▼
+                            RISCO
+                              │
+                              ▼
+                         AVALIAÇÃO
+                              │
+                              ▼
+                      MEDIDA DE CONTROLE
+                              │
+                              ▼
+                         PLANO DE AÇÃO
+                              │
+                              ▼
+                            PGR
+                              │
+                              ▼
+                         DOCUMENTO
+```
+
+Esse é o **fluxo central do domínio SST360**.
+
+---
+
+# 4. Relacionamentos principais
+
+| Entidade         | Relacionamento                |
+| ---------------- | ----------------------------- |
+| Tenant           | possui Empresas               |
+| Empresa          | possui Estabelecimentos       |
+| Estabelecimento  | possui Setores                |
+| Setor            | possui Cargos/Funções         |
+| Trabalhador      | possui histórico de alocação  |
+| Setor            | possui perigos identificados  |
+| Perigo           | pode originar riscos          |
+| Risco            | possui avaliações             |
+| Avaliação        | pode possuir controles        |
+| Controle         | pode gerar ações              |
+| PGR              | consolida riscos e ações      |
+| Documento        | registra evidências e versões |
+| Usuário          | pertence a um Tenant          |
+| Usuário          | possui perfis/permissões      |
+| Operação crítica | gera auditoria                |
+
+---
+
+# 5. Diagrama de arquitetura
+
+```text
+                  USUÁRIO
+                     │
+                     ▼
+              ┌─────────────┐
+              │    Nginx    │
+              └──────┬──────┘
+                     │
+                     ▼
+              ┌─────────────┐
+              │   Laravel   │
+              └──────┬──────┘
+                     │
+       ┌─────────────┼─────────────┐
+       │             │             │
+       ▼             ▼             ▼
+    MySQL          Redis       Storage
+       │             │             │
+       │          Filas/Cache      │
+       │                           │
+       └──────────────┬────────────┘
+                      ▼
+                 SST360 Core
+```
+
+---
+
+# 6. Arquitetura modular Laravel
+
+```text
+app/
+│
+├── Modules/
+│   ├── IAM/
+│   ├── Tenancy/
+│   ├── Organization/
+│   ├── Workers/
+│   ├── Risks/
+│   ├── PGR/
+│   ├── Health/
+│   ├── CIPA/
+│   ├── PPE/
+│   ├── Training/
+│   ├── Accidents/
+│   ├── Documents/
+│   ├── Compliance/
+│   ├── Indicators/
+│   ├── Notifications/
+│   └── Audit/
+│
+└── Shared/
+```
+
+A estrutura definitiva de diretórios será refinada na fase de implementação.
+
+---
+
+# 7. Fluxo de autenticação
+
+```text
+Usuário
+   │
+   ▼
+Login
+   │
+   ▼
+Autenticação
+   │
+   ▼
+Tenant
+   │
+   ▼
+Role
+   │
+   ▼
+Permission
+   │
+   ▼
+Scope
+   │
+   ▼
+Acesso autorizado
+```
+
+---
+
+# 8. Fluxo de geração do PGR
+
+```text
+Dados organizacionais
+        │
+        ▼
+Perigos
+        │
+        ▼
+Riscos
+        │
+        ▼
+Avaliações
+        │
+        ▼
+Controles
+        │
+        ▼
+Plano de Ação
+        │
+        ▼
+Inventário de Riscos
+        │
+        ▼
+PGR
+        │
+        ▼
+Aprovação
+        │
+        ▼
+Versão
+        │
+        ▼
+PDF / Documento
+```
+
+---
+
+# 9. UML que será desenvolvido posteriormente
+
+Não precisamos criar dezenas de diagramas.
+
+Serão priorizados:
+
+1. **Casos de Uso Geral**
+2. **Diagrama de Domínio**
+3. **Diagrama de Arquitetura**
+4. **Diagrama de Entidade-Relacionamento**
+5. **Diagrama de Sequência** para processos críticos
+6. **Diagrama de Estados** quando houver workflows complexos
+
+Os diagramas detalhados serão criados junto com cada módulo.
+
+---
+
+# 10. Resultado
+
+A UML inicial estabelece:
+
+**Atores → Funcionalidades → Domínio → Arquitetura → Fluxos principais.**
+
+O próximo artefato será a **ETAPA 9 — Arquitetura do Sistema**, onde vamos definir de maneira objetiva **como o Laravel será organizado internamente**, incluindo módulos, camadas, responsabilidades e comunicação entre componentes.
