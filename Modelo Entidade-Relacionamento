@@ -1,0 +1,323 @@
+# ETAPA 11 — Modelo Entidade-Relacionamento
+
+**Projeto:** SST360
+**Banco:** MySQL
+**Versão:** 1.0
+
+## 1. Modelo principal
+
+```text
+TENANTS
+   │
+   └──< COMPANIES
+          │
+          └──< ESTABLISHMENTS
+                  │
+                  └──< SECTORS
+                         │
+                         ├──< WORKER_ALLOCATIONS >── WORKERS
+                         │                              │
+                         │                              └──< DOCUMENTS
+                         │
+                         └──< RISK_ASSESSMENTS
+                                  │
+                                  ├── RISKS ──> HAZARDS
+                                  │
+                                  └──< CONTROLS
+                                           │
+                                           └──< ACTION_PLANS
+```
+
+---
+
+## 2. Entidades
+
+| Entidade           | Finalidade             |
+| ------------------ | ---------------------- |
+| tenants            | Cliente do SaaS        |
+| users              | Usuários da plataforma |
+| companies          | Empresas               |
+| establishments     | Estabelecimentos       |
+| sectors            | Setores                |
+| positions          | Cargos/funções         |
+| workers            | Trabalhadores          |
+| worker_allocations | Histórico de alocação  |
+| hazards            | Perigos                |
+| risks              | Riscos                 |
+| risk_assessments   | Avaliações             |
+| controls           | Medidas de controle    |
+| pgrs               | Programas PGR          |
+| risk_inventories   | Inventário de riscos   |
+| action_plans       | Planos de ação         |
+| documents          | Documentos             |
+| document_versions  | Versões dos documentos |
+| audit_logs         | Auditoria              |
+
+---
+
+## 3. Relacionamentos
+
+| Origem          | Cardinalidade | Destino            |
+| --------------- | ------------: | ------------------ |
+| Tenant          |           1:N | Users              |
+| Tenant          |           1:N | Companies          |
+| Company         |           1:N | Establishments     |
+| Establishment   |           1:N | Sectors            |
+| Tenant          |           1:N | Positions          |
+| Tenant          |           1:N | Workers            |
+| Worker          |           1:N | Worker Allocations |
+| Sector          |           1:N | Worker Allocations |
+| Position        |           1:N | Worker Allocations |
+| Tenant          |           1:N | Hazards            |
+| Hazard          |           1:N | Risks              |
+| Risk            |           1:N | Risk Assessments   |
+| Sector          |           1:N | Risk Assessments   |
+| Risk Assessment |           1:N | Controls           |
+| PGR             |           1:N | Risk Inventories   |
+| PGR             |           1:N | Action Plans       |
+| Risk Assessment |           1:N | Risk Inventories   |
+| Tenant          |           1:N | Documents          |
+| Document        |           1:N | Document Versions  |
+| Tenant          |           1:N | Audit Logs         |
+
+---
+
+## 4. Chaves principais
+
+Cada entidade terá uma chave primária:
+
+```text
+tenants              → id
+users                → id
+companies            → id
+establishments       → id
+sectors              → id
+positions            → id
+workers              → id
+worker_allocations   → id
+hazards              → id
+risks                → id
+risk_assessments     → id
+controls             → id
+pgrs                 → id
+risk_inventories     → id
+action_plans         → id
+documents            → id
+document_versions    → id
+audit_logs           → id
+```
+
+As relações serão implementadas através de Foreign Keys.
+
+---
+
+## 5. Estrutura de segurança
+
+As entidades pertencentes diretamente ao cliente terão:
+
+```text
+tenant_id
+```
+
+Exemplo:
+
+```text
+workers
+──────────────
+id
+tenant_id
+name
+document
+status
+```
+
+Entidades que pertencem a outra entidade poderão utilizar a relação hierárquica.
+
+Exemplo:
+
+```text
+companies
+──────────────
+id
+tenant_id
+
+establishments
+──────────────
+id
+company_id
+```
+
+---
+
+## 6. Fluxo de dados SST
+
+```text
+EMPRESA
+   ↓
+ESTABELECIMENTO
+   ↓
+SETOR
+   ↓
+TRABALHADOR
+   ↓
+EXPOSIÇÃO / PERIGO
+   ↓
+RISCO
+   ↓
+AVALIAÇÃO
+   ↓
+CONTROLE
+   ↓
+PLANO DE AÇÃO
+   ↓
+PGR
+   ↓
+DOCUMENTO
+```
+
+---
+
+## 7. Ponto importante: PGR
+
+O PGR não será simplesmente um documento PDF armazenado.
+
+Ele será construído a partir de dados estruturados:
+
+```text
+PGR
+ ├── Inventário de Riscos
+ │     ├── Perigos
+ │     ├── Riscos
+ │     ├── Avaliações
+ │     └── Controles
+ │
+ └── Plano de Ação
+       ├── Ações
+       ├── Responsáveis
+       ├── Prazos
+       └── Status
+```
+
+Posteriormente, esses dados poderão alimentar automaticamente a geração documental.
+
+---
+
+## 8. Histórico
+
+O modelo deverá preservar histórico de informações relevantes.
+
+Exemplo:
+
+```text
+TRABALHADOR
+     │
+     ├── Setor A
+     │     2024 → 2025
+     │
+     └── Setor B
+           2025 → atual
+```
+
+A alteração da alocação não deverá apagar a informação anterior.
+
+O mesmo princípio será aplicado a:
+
+* riscos;
+* avaliações;
+* controles;
+* PGR;
+* documentos;
+* permissões;
+* auditoria.
+
+---
+
+## 9. Modelo simplificado completo
+
+```text
+                         TENANT
+                           │
+          ┌────────────────┼─────────────────┐
+          │                │                 │
+        USERS           COMPANIES         WORKERS
+                           │                 │
+                           ▼                 ▼
+                    ESTABLISHMENTS     ALLOCATIONS
+                           │                 │
+                           ▼                 ▼
+                        SECTORS          POSITIONS
+                           │
+                           ▼
+                    RISK ASSESSMENTS
+                       │          │
+                       ▼          ▼
+                    RISKS       CONTROLS
+                       │           │
+                       ▼           ▼
+                    HAZARDS    ACTION PLANS
+                       │
+                       └──────┐
+                              ▼
+                             PGR
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+             RISK INVENTORY         DOCUMENTS
+                                         │
+                                         ▼
+                                  DOCUMENT VERSIONS
+
+                         ALL CRITICAL ACTIONS
+                                  │
+                                  ▼
+                             AUDIT LOGS
+```
+
+---
+
+## 10. Decisão
+
+O DER será evolutivo.
+
+Não criaremos todas as tabelas do sistema agora.
+
+A primeira implementação do banco deverá contemplar:
+
+```text
+TENANT
+USERS
+COMPANIES
+ESTABLISHMENTS
+SECTORS
+POSITIONS
+WORKERS
+WORKER_ALLOCATIONS
+HAZARDS
+RISKS
+RISK_ASSESSMENTS
+CONTROLS
+PGRS
+RISK_INVENTORIES
+ACTION_PLANS
+DOCUMENTS
+DOCUMENT_VERSIONS
+AUDIT_LOGS
+```
+
+Os módulos de:
+
+* PCMSO;
+* CIPA;
+* EPI;
+* treinamentos;
+* acidentes;
+* CAT;
+* indicadores avançados;
+* compliance;
+* integrações;
+
+serão incorporados posteriormente.
+
+# Resultado
+
+O SST360 possui agora um **modelo de dados conceitual inicial**, suficiente para iniciar a modelagem física do MySQL sem antecipar complexidade desnecessária.
