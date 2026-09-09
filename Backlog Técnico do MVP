@@ -1,0 +1,617 @@
+# ETAPA 18 — Backlog Técnico do MVP
+
+**Projeto:** SST360
+**Stack:** PHP + Laravel + MySQL
+**Arquitetura:** Modular Monolith
+**Objetivo:** transformar o roadmap do MVP em tarefas técnicas executáveis.
+
+---
+
+# 1. Sprint 0 — Preparação
+
+**Objetivo:** preparar o ambiente de desenvolvimento.
+
+### Tarefas
+
+* Criar projeto Laravel.
+* Configurar Git.
+* Criar repositório GitHub.
+* Configurar Docker.
+* Configurar MySQL.
+* Configurar Redis.
+* Configurar `.env`.
+* Configurar ambiente de testes.
+* Configurar padrão de branches.
+* Configurar `.gitignore`.
+* Criar documentação inicial.
+
+### Entregável
+
+```text
+Laravel
+   +
+Docker
+   +
+MySQL
+   +
+Redis
+   +
+Git/GitHub
+```
+
+---
+
+# 2. Sprint 1 — Multi-Tenancy
+
+**Módulo:** Tenancy
+
+### Tarefas
+
+* Criar migration `tenants`.
+* Criar Model `Tenant`.
+* Criar Factory.
+* Criar Seeder.
+* Definir status do tenant.
+* Criar relacionamento Tenant → Users.
+* Criar mecanismo de identificação do tenant.
+* Criar proteção de isolamento.
+
+### Testes
+
+* Tenant válido.
+* Tenant inexistente.
+* Usuário pertencente ao tenant.
+* Tentativa de acesso cruzado entre tenants.
+
+### Entregável
+
+**Isolamento básico de tenants funcionando.**
+
+---
+
+# 3. Sprint 2 — IAM
+
+**Módulo:** IAM
+
+### Tarefas
+
+* Adaptar `users`.
+* Criar `roles`.
+* Criar `permissions`.
+* Criar tabelas relacionais.
+* Criar Models.
+* Criar Policies.
+* Criar autenticação.
+* Criar autorização.
+* Criar controle de usuário ativo/inativo.
+
+### Testes
+
+* Login.
+* Logout.
+* Usuário ativo.
+* Usuário inativo.
+* Permissão concedida.
+* Permissão negada.
+* Acesso por tenant.
+
+### Entregável
+
+**Sistema de autenticação e autorização funcional.**
+
+---
+
+# 4. Sprint 3 — Organização
+
+**Módulo:** Organization
+
+### Migrations
+
+```text
+companies
+establishments
+sectors
+positions
+```
+
+### Models
+
+```text
+Company
+Establishment
+Sector
+Position
+```
+
+### Tarefas
+
+* CRUD de empresa.
+* CRUD de estabelecimento.
+* CRUD de setor.
+* CRUD de cargo.
+* Relacionamentos.
+* Validações.
+* Policies.
+* Auditoria.
+
+### Entregável
+
+Estrutura organizacional funcional.
+
+```text
+Tenant
+  ↓
+Company
+  ↓
+Establishment
+  ↓
+Sector
+```
+
+---
+
+# 5. Sprint 4 — Trabalhadores
+
+**Módulo:** Workers
+
+### Migrations
+
+```text
+workers
+worker_allocations
+```
+
+### Models
+
+```text
+Worker
+WorkerAllocation
+```
+
+### Tarefas
+
+* Cadastro.
+* Edição.
+* Inativação.
+* Alocação.
+* Transferência.
+* Histórico.
+* Consulta.
+* Policies.
+* Auditoria.
+
+### Entregável
+
+Cadastro central de trabalhadores.
+
+---
+
+# 6. Sprint 5 — Perigos e Riscos
+
+**Módulo:** Risks
+
+### Migrations
+
+```text
+hazards
+risks
+risk_assessments
+controls
+```
+
+### Models
+
+```text
+Hazard
+Risk
+RiskAssessment
+Control
+```
+
+### Tarefas
+
+* Cadastro de perigos.
+* Cadastro de riscos.
+* Associação perigo → risco.
+* Avaliação.
+* Probabilidade.
+* Severidade.
+* Score.
+* Classificação.
+* Matriz configurável.
+* Medidas de controle.
+
+### Entregável
+
+Motor básico de avaliação de riscos.
+
+```text
+Perigo
+ ↓
+Risco
+ ↓
+Avaliação
+ ↓
+Classificação
+ ↓
+Controle
+```
+
+---
+
+# 7. Sprint 6 — GRO/PGR
+
+**Módulo:** PGR
+
+### Migrations
+
+```text
+pgrs
+risk_inventories
+action_plans
+```
+
+### Models
+
+```text
+Pgr
+RiskInventory
+ActionPlan
+```
+
+### Tarefas
+
+* Criar PGR.
+* Definir escopo.
+* Criar inventário.
+* Associar avaliações.
+* Criar plano de ação.
+* Definir responsável.
+* Definir prazo.
+* Controlar status.
+* Controlar vencimentos.
+* Criar revisão.
+* Versionar.
+* Aprovar.
+
+### Entregável
+
+**PGR estruturado e rastreável.**
+
+---
+
+# 8. Sprint 7 — Gestão Documental
+
+**Módulo:** Documents
+
+### Migrations
+
+```text
+documents
+document_versions
+```
+
+### Models
+
+```text
+Document
+DocumentVersion
+```
+
+### Tarefas
+
+* Criar documento.
+* Upload.
+* Armazenamento.
+* Versionamento.
+* Classificação.
+* Controle de validade.
+* Controle de acesso.
+* Download.
+* Histórico.
+* Geração de PDF.
+
+### Infraestrutura
+
+```text
+Laravel
+   ↓
+Storage Service
+   ↓
+S3 / MinIO
+```
+
+### Entregável
+
+**Gestão documental funcional.**
+
+---
+
+# 9. Sprint 8 — Dashboard
+
+**Módulo:** Indicators
+
+### Tarefas
+
+* Criar consultas agregadas.
+* Criar indicadores.
+* Criar cards.
+* Criar gráficos.
+* Criar filtros.
+* Criar visão por estabelecimento.
+* Criar visão por setor.
+* Criar visão de riscos.
+* Criar visão de pendências.
+
+### Indicadores iniciais
+
+```text
+Trabalhadores
+Estabelecimentos
+Riscos
+Riscos críticos
+PGRs
+Ações abertas
+Ações atrasadas
+Documentos vencendo
+```
+
+### Entregável
+
+**Dashboard gerencial inicial.**
+
+---
+
+# 10. Sprint 9 — Auditoria
+
+**Módulo:** Audit
+
+### Migration
+
+```text
+audit_logs
+```
+
+### Tarefas
+
+* Registrar usuário.
+* Registrar tenant.
+* Registrar ação.
+* Registrar entidade.
+* Registrar ID.
+* Registrar data/hora.
+* Registrar IP.
+* Registrar resultado.
+* Criar consulta de auditoria.
+
+### Entregável
+
+**Rastreabilidade das operações críticas.**
+
+---
+
+# 11. Sprint 10 — Testes de Integração
+
+### Testes principais
+
+```text
+Authentication
+Authorization
+Multi-Tenancy
+Organization
+Workers
+Risks
+PGR
+Documents
+Dashboard
+Audit
+```
+
+### Teste E2E principal
+
+```text
+Login
+ ↓
+Empresa
+ ↓
+Estabelecimento
+ ↓
+Setor
+ ↓
+Trabalhador
+ ↓
+Perigo
+ ↓
+Risco
+ ↓
+Avaliação
+ ↓
+Controle
+ ↓
+PGR
+ ↓
+Plano de Ação
+ ↓
+Documento
+ ↓
+Dashboard
+```
+
+### Entregável
+
+**MVP validado funcionalmente.**
+
+---
+
+# 12. Sprint 11 — Segurança
+
+### Validações
+
+* Isolamento de tenant.
+* Policies.
+* RBAC.
+* Validação de entrada.
+* Proteção contra acesso indevido.
+* Upload seguro.
+* Controle de arquivos.
+* Rate limiting.
+* Sessões.
+* Logs.
+* Proteção de informações sensíveis.
+
+### Entregável
+
+**MVP preparado para homologação.**
+
+---
+
+# 13. Sprint 12 — Deploy
+
+### Tarefas
+
+* Configurar ambiente de produção.
+* Configurar Docker.
+* Configurar Nginx.
+* Configurar PHP.
+* Configurar MySQL.
+* Configurar Redis.
+* Configurar Storage.
+* Configurar HTTPS.
+* Configurar backups.
+* Configurar logs.
+* Configurar CI/CD.
+* Executar migrations.
+* Executar testes.
+
+### Entregável
+
+**SST360 disponível em ambiente de produção.**
+
+---
+
+# 14. Visão Geral
+
+```text
+SPRINT 0
+Fundação
+   ↓
+SPRINT 1
+Multi-Tenancy
+   ↓
+SPRINT 2
+IAM
+   ↓
+SPRINT 3
+Organização
+   ↓
+SPRINT 4
+Trabalhadores
+   ↓
+SPRINT 5
+Riscos
+   ↓
+SPRINT 6
+GRO/PGR
+   ↓
+SPRINT 7
+Documentos
+   ↓
+SPRINT 8
+Dashboard
+   ↓
+SPRINT 9
+Auditoria
+   ↓
+SPRINT 10
+Testes
+   ↓
+SPRINT 11
+Segurança
+   ↓
+SPRINT 12
+Deploy
+```
+
+---
+
+# 15. Critério de conclusão de cada Sprint
+
+Cada Sprint somente será considerada concluída quando possuir:
+
+```text
+Migration
+   +
+Model
+   +
+Relacionamentos
+   +
+Validação
+   +
+Autorização
+   +
+Interface
+   +
+Testes
+   +
+Documentação
+```
+
+Quando aplicável, também:
+
+```text
+Service
+Job
+Event
+Notification
+Policy
+```
+
+---
+
+# 16. Regra de Desenvolvimento
+
+O desenvolvimento seguirá:
+
+```text
+Requisito
+   ↓
+Regra de Negócio
+   ↓
+Migration
+   ↓
+Model
+   ↓
+Service / Use Case
+   ↓
+Policy
+   ↓
+Controller / Livewire
+   ↓
+Interface
+   ↓
+Teste
+   ↓
+Documentação
+```
+
+Nenhuma funcionalidade crítica deverá ser desenvolvida diretamente na interface sem passar pelas regras de domínio e autorização.
+
+---
+
+# Resultado
+
+O SST360 agora possui um backlog técnico organizado em **13 etapas de execução**, cobrindo:
+
+* infraestrutura;
+* banco;
+* backend;
+* segurança;
+* autorização;
+* frontend;
+* documentos;
+* indicadores;
+* testes;
+* DevOps;
+* deploy.
+
+A partir deste ponto, o projeto já pode entrar na preparação técnica para implementação.
