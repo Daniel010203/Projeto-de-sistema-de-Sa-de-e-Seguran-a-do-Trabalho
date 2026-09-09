@@ -1,0 +1,733 @@
+# ETAPA 19 — Estrutura Definitiva do Projeto Laravel
+
+**Projeto:** SST360
+**Stack:** PHP + Laravel + MySQL
+**Arquitetura:** Modular Monolith
+**Frontend inicial:** Blade + Livewire + Alpine.js
+
+---
+
+## 1. Estrutura Principal
+
+```text
+sst360/
+│
+├── app/
+│   ├── Modules/
+│   │   ├── Tenancy/
+│   │   ├── IAM/
+│   │   ├── Organization/
+│   │   ├── Workers/
+│   │   ├── Risks/
+│   │   ├── PGR/
+│   │   ├── Documents/
+│   │   ├── Indicators/
+│   │   ├── Notifications/
+│   │   └── Audit/
+│   │
+│   └── Shared/
+│
+├── bootstrap/
+│
+├── config/
+│
+├── database/
+│   ├── factories/
+│   ├── migrations/
+│   └── seeders/
+│
+├── resources/
+│   ├── views/
+│   ├── css/
+│   └── js/
+│
+├── routes/
+│   ├── web.php
+│   ├── api.php
+│   └── console.php
+│
+├── storage/
+│
+├── tests/
+│   ├── Feature/
+│   ├── Unit/
+│   └── E2E/
+│
+├── docker/
+│
+├── public/
+│
+├── .env
+├── .env.example
+├── composer.json
+├── package.json
+└── README.md
+```
+
+---
+
+# 2. Estrutura dos Módulos
+
+Cada módulo possuirá responsabilidade própria.
+
+Exemplo:
+
+```text
+app/Modules/Risks/
+│
+├── Models/
+├── Services/
+├── Actions/
+├── Policies/
+├── Requests/
+├── Events/
+├── Jobs/
+├── Resources/
+└── Livewire/
+```
+
+Nem todos os módulos precisarão obrigatoriamente possuir todas essas pastas.
+
+A estrutura deverá crescer conforme a necessidade.
+
+---
+
+# 3. Tenancy
+
+```text
+Tenancy/
+├── Models/
+│   └── Tenant.php
+│
+├── Services/
+├── Middleware/
+├── Policies/
+└── Actions/
+```
+
+Responsabilidades:
+
+* tenant;
+* identificação do tenant;
+* contexto atual;
+* isolamento;
+* regras de acesso.
+
+---
+
+# 4. IAM
+
+```text
+IAM/
+├── Models/
+│   ├── User.php
+│   ├── Role.php
+│   └── Permission.php
+│
+├── Policies/
+├── Services/
+├── Actions/
+└── Requests/
+```
+
+Responsabilidades:
+
+* autenticação;
+* usuários;
+* perfis;
+* permissões;
+* autorização;
+* controle de acesso.
+
+---
+
+# 5. Organization
+
+```text
+Organization/
+├── Models/
+│   ├── Company.php
+│   ├── Establishment.php
+│   ├── Sector.php
+│   └── Position.php
+│
+├── Services/
+├── Actions/
+├── Policies/
+└── Requests/
+```
+
+Responsabilidades:
+
+* empresas;
+* estabelecimentos;
+* setores;
+* cargos;
+* estrutura organizacional.
+
+---
+
+# 6. Workers
+
+```text
+Workers/
+├── Models/
+│   ├── Worker.php
+│   └── WorkerAllocation.php
+│
+├── Services/
+├── Actions/
+├── Policies/
+└── Requests/
+```
+
+Responsabilidades:
+
+* trabalhadores;
+* alocações;
+* movimentações;
+* histórico.
+
+---
+
+# 7. Risks
+
+```text
+Risks/
+├── Models/
+│   ├── Hazard.php
+│   ├── Risk.php
+│   ├── RiskAssessment.php
+│   └── Control.php
+│
+├── Services/
+├── Actions/
+├── Policies/
+└── Requests/
+```
+
+Responsabilidades:
+
+* perigos;
+* riscos;
+* avaliações;
+* matriz;
+* controles;
+* classificação.
+
+---
+
+# 8. PGR
+
+```text
+PGR/
+├── Models/
+│   ├── Pgr.php
+│   ├── RiskInventory.php
+│   └── ActionPlan.php
+│
+├── Services/
+├── Actions/
+├── Policies/
+├── Requests/
+├── Jobs/
+└── Events/
+```
+
+Responsabilidades:
+
+* PGR;
+* inventário;
+* plano de ação;
+* revisão;
+* aprovação;
+* versionamento;
+* geração de documentos.
+
+---
+
+# 9. Documents
+
+```text
+Documents/
+├── Models/
+│   ├── Document.php
+│   └── DocumentVersion.php
+│
+├── Services/
+├── Actions/
+├── Policies/
+├── Jobs/
+└── Requests/
+```
+
+Responsabilidades:
+
+* documentos;
+* versões;
+* upload;
+* armazenamento;
+* classificação;
+* validade;
+* geração de PDF.
+
+---
+
+# 10. Indicators
+
+```text
+Indicators/
+├── Models/
+├── Services/
+├── Queries/
+└── Livewire/
+```
+
+Responsabilidades:
+
+* indicadores;
+* consultas agregadas;
+* métricas;
+* dashboards.
+
+---
+
+# 11. Notifications
+
+```text
+Notifications/
+├── Services/
+├── Jobs/
+└── Notifications/
+```
+
+Responsabilidades:
+
+* alertas;
+* vencimentos;
+* pendências;
+* notificações.
+
+---
+
+# 12. Audit
+
+```text
+Audit/
+├── Models/
+│   └── AuditLog.php
+│
+├── Services/
+├── Events/
+└── Listeners/
+```
+
+Responsabilidades:
+
+* auditoria;
+* rastreabilidade;
+* eventos críticos;
+* histórico operacional.
+
+---
+
+# 13. Shared
+
+O diretório `Shared` conterá somente componentes realmente compartilhados.
+
+Exemplos:
+
+```text
+Shared/
+├── Exceptions/
+├── Enums/
+├── ValueObjects/
+├── Support/
+└── Contracts/
+```
+
+Não deverá ser utilizado como depósito genérico de código.
+
+---
+
+# 14. Models
+
+Os Models representarão entidades persistentes.
+
+Exemplo:
+
+```text
+Worker
+Company
+Risk
+RiskAssessment
+Pgr
+Document
+```
+
+Responsabilidades principais:
+
+* relacionamento;
+* casts;
+* atributos;
+* scopes simples;
+* integração com Eloquent.
+
+Regras de negócio complexas não deverão ser concentradas nos Models.
+
+---
+
+# 15. Services
+
+Services representarão operações de aplicação que envolvem múltiplas regras ou entidades.
+
+Exemplos:
+
+```text
+CreatePgrService
+EvaluateRiskService
+GeneratePgrDocumentService
+AllocateWorkerService
+```
+
+Responsabilidades:
+
+* orquestrar operações;
+* coordenar entidades;
+* aplicar fluxo de negócio.
+
+---
+
+# 16. Actions / Use Cases
+
+Actions representarão operações específicas.
+
+Exemplo:
+
+```text
+CreateCompanyAction
+CreateWorkerAction
+CreateRiskAssessmentAction
+ApprovePgrAction
+```
+
+Quando uma operação for simples, não haverá necessidade de criar uma abstração excessiva.
+
+---
+
+# 17. Policies
+
+As Policies controlarão autorização.
+
+Exemplo:
+
+```text
+CompanyPolicy
+WorkerPolicy
+RiskPolicy
+PgrPolicy
+DocumentPolicy
+```
+
+Fluxo:
+
+```text
+Usuário
+   ↓
+Tenant
+   ↓
+Permission
+   ↓
+Scope
+   ↓
+Policy
+   ↓
+Operação
+```
+
+---
+
+# 18. Form Requests
+
+As validações de entrada ficarão nos Requests.
+
+Exemplo:
+
+```text
+StoreCompanyRequest
+UpdateCompanyRequest
+StoreWorkerRequest
+StoreRiskRequest
+StorePgrRequest
+```
+
+Responsabilidades:
+
+* validar dados;
+* normalizar entrada;
+* mensagens de validação.
+
+---
+
+# 19. Livewire
+
+O Livewire será utilizado inicialmente para interfaces interativas.
+
+Exemplos:
+
+```text
+Dashboard
+CompanyForm
+WorkerForm
+RiskAssessmentForm
+PgrForm
+DocumentUpload
+```
+
+A interface poderá evoluir posteriormente sem alterar o domínio central.
+
+---
+
+# 20. Controllers
+
+Controllers deverão permanecer finos.
+
+Fluxo:
+
+```text
+Request
+   ↓
+Controller
+   ↓
+Action / Service
+   ↓
+Model / Domain
+   ↓
+Response
+```
+
+O Controller não deverá concentrar regras de negócio.
+
+---
+
+# 21. Jobs
+
+Jobs serão utilizados para operações assíncronas.
+
+Exemplos:
+
+```text
+GeneratePgrPdfJob
+ProcessDocumentJob
+SendExpirationNotificationJob
+GenerateIndicatorJob
+```
+
+Fluxo:
+
+```text
+Usuário
+   ↓
+Laravel
+   ↓
+Queue
+   ↓
+Redis
+   ↓
+Worker
+   ↓
+Job
+```
+
+---
+
+# 22. Events
+
+Events representarão acontecimentos importantes.
+
+Exemplos:
+
+```text
+PgrApproved
+RiskAssessmentCompleted
+DocumentGenerated
+WorkerAllocated
+```
+
+Listeners poderão executar ações secundárias sem acoplar excessivamente os módulos.
+
+---
+
+# 23. API
+
+A API será organizada por versão:
+
+```text
+/api/v1/
+```
+
+Exemplo conceitual:
+
+```text
+/api/v1/companies
+/api/v1/establishments
+/api/v1/sectors
+/api/v1/workers
+/api/v1/risks
+/api/v1/pgrs
+/api/v1/documents
+```
+
+A API utilizará Resources para padronização das respostas.
+
+---
+
+# 24. Testes
+
+Estrutura:
+
+```text
+tests/
+├── Unit/
+├── Feature/
+└── E2E/
+```
+
+### Unit
+
+Regras isoladas.
+
+### Feature
+
+Fluxos da aplicação.
+
+### E2E
+
+Fluxos completos do usuário.
+
+Exemplo:
+
+```text
+Login
+ ↓
+Empresa
+ ↓
+Trabalhador
+ ↓
+Risco
+ ↓
+PGR
+```
+
+---
+
+# 25. Regra de Dependência
+
+Os módulos deverão evitar dependências circulares.
+
+Exemplo desejável:
+
+```text
+Organization
+      ↑
+Workers
+      ↑
+Risks
+      ↑
+PGR
+```
+
+Evitar:
+
+```text
+Module A → Module B
+Module B → Module A
+```
+
+Quando necessário, utilizar:
+
+* Contracts;
+* Events;
+* Services;
+* interfaces.
+
+---
+
+# 26. Estrutura Conceitual Final
+
+```text
+                    SST360
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+      IAM          Organization     Tenancy
+        │              │
+        │              ▼
+        │          Workers
+        │              │
+        │              ▼
+        │            Risks
+        │              │
+        │              ▼
+        │             PGR
+        │              │
+        └───────┬──────┘
+                ▼
+           Documents
+                │
+                ▼
+           Indicators
+                │
+                ▼
+              Audit
+```
+
+---
+
+# 27. Regra de Ouro da Arquitetura
+
+O SST360 deverá seguir:
+
+```text
+Interface
+   ↓
+Application
+   ↓
+Domain
+   ↓
+Persistence
+```
+
+E não:
+
+```text
+Interface
+   ↓
+Database
+```
+
+Toda funcionalidade importante deverá passar pela camada apropriada.
+
+---
+
+# Resultado
+
+A estrutura arquitetural do código está definida.
+
+Temos agora:
+
+* módulos;
+* Models;
+* Services;
+* Actions;
+* Policies;
+* Requests;
+* Controllers;
+* Livewire;
+* Jobs;
+* Events;
+* API;
+* testes;
+* regras de dependência.
+
+A estrutura foi mantida simples o suficiente para um **Modular Monolith Laravel**, mas organizada para permitir crescimento futuro.
