@@ -1,0 +1,477 @@
+# ETAPA 17 — Roadmap de Desenvolvimento do MVP
+
+**Projeto:** SST360
+**Stack:** PHP + Laravel + MySQL
+**Arquitetura:** Modular Monolith
+**Objetivo:** Construir a primeira versão funcional da plataforma.
+
+---
+
+## 1. Estratégia
+
+O MVP será desenvolvido em incrementos.
+
+Cada fase deverá produzir uma parte funcional do sistema.
+
+```text
+Fundação
+   ↓
+IAM
+   ↓
+Organização
+   ↓
+Trabalhadores
+   ↓
+Riscos
+   ↓
+PGR
+   ↓
+Documentos
+   ↓
+Dashboard
+   ↓
+Auditoria
+   ↓
+MVP
+```
+
+---
+
+# 2. FASE 1 — Fundação Técnica
+
+**Objetivo:** preparar o projeto Laravel.
+
+### Entregas
+
+* Projeto Laravel;
+* configuração do ambiente;
+* MySQL;
+* Docker;
+* Git;
+* configuração `.env`;
+* estrutura modular;
+* configuração inicial de testes;
+* configuração de filas;
+* configuração de armazenamento;
+* tratamento inicial de erros.
+
+### Resultado
+
+```text
+Laravel funcionando
+        +
+MySQL conectado
+        +
+Ambiente reproduzível
+```
+
+---
+
+# 3. FASE 2 — IAM e Multi-Tenancy
+
+**Objetivo:** criar a segurança básica da plataforma.
+
+### Entregas
+
+* Tenant;
+* usuários;
+* autenticação;
+* perfis;
+* permissões;
+* autorização;
+* isolamento por `tenant_id`;
+* Policies;
+* controle de usuário ativo/inativo.
+
+### Resultado
+
+Um usuário somente poderá acessar os recursos permitidos dentro do seu tenant.
+
+---
+
+# 4. FASE 3 — Organização
+
+**Objetivo:** representar a estrutura das empresas.
+
+### Entregas
+
+* empresas;
+* estabelecimentos;
+* setores;
+* cargos;
+* funções;
+* relacionamentos;
+* histórico organizacional.
+
+### Fluxo
+
+```text
+Tenant
+  ↓
+Empresa
+  ↓
+Estabelecimento
+  ↓
+Setor
+  ↓
+Cargo/Função
+```
+
+---
+
+# 5. FASE 4 — Trabalhadores
+
+**Objetivo:** criar o cadastro central dos trabalhadores.
+
+### Entregas
+
+* cadastro;
+* edição;
+* status;
+* alocação;
+* movimentação;
+* histórico;
+* consulta do trabalhador.
+
+### Fluxo
+
+```text
+Trabalhador
+     ↓
+Alocação
+     ↓
+Setor
+     ↓
+Cargo/Função
+```
+
+O histórico deverá ser preservado.
+
+---
+
+# 6. FASE 5 — Perigos e Riscos
+
+**Objetivo:** construir o núcleo de gestão de riscos ocupacionais.
+
+### Entregas
+
+* cadastro de perigos;
+* categorias;
+* riscos;
+* associação perigo → risco;
+* avaliação;
+* probabilidade;
+* severidade;
+* score;
+* classificação;
+* matriz de risco;
+* controles.
+
+### Fluxo
+
+```text
+Perigo
+  ↓
+Risco
+  ↓
+Avaliação
+  ↓
+Classificação
+  ↓
+Controle
+```
+
+---
+
+# 7. FASE 6 — GRO / PGR
+
+**Objetivo:** transformar os dados de riscos em gestão estruturada do PGR.
+
+### Entregas
+
+* criação do PGR;
+* definição do escopo;
+* inventário de riscos;
+* associação das avaliações;
+* plano de ação;
+* responsáveis;
+* prazos;
+* status;
+* revisão;
+* versionamento;
+* aprovação.
+
+### Fluxo
+
+```text
+Riscos
+   ↓
+Avaliações
+   ↓
+Inventário
+   ↓
+PGR
+   ↓
+Plano de Ação
+   ↓
+Acompanhamento
+```
+
+---
+
+# 8. FASE 7 — Gestão Documental
+
+**Objetivo:** controlar os documentos produzidos ou armazenados pela plataforma.
+
+### Entregas
+
+* cadastro de documento;
+* upload;
+* classificação;
+* versionamento;
+* validade;
+* controle de acesso;
+* download;
+* histórico;
+* armazenamento externo;
+* geração de PDF.
+
+### Arquitetura
+
+```text
+Laravel
+   │
+   ├── Metadados
+   │       ↓
+   │      MySQL
+   │
+   └── Arquivo
+           ↓
+       S3 / MinIO
+```
+
+---
+
+# 9. FASE 8 — Dashboard
+
+**Objetivo:** transformar os dados do sistema em informação gerencial.
+
+### Indicadores iniciais
+
+* quantidade de trabalhadores;
+* quantidade de estabelecimentos;
+* riscos por classificação;
+* riscos críticos;
+* ações abertas;
+* ações atrasadas;
+* PGRs ativos;
+* documentos próximos do vencimento.
+
+### Visão
+
+```text
+DADOS
+  ↓
+PROCESSAMENTO
+  ↓
+INDICADORES
+  ↓
+DASHBOARD
+```
+
+---
+
+# 10. FASE 9 — Auditoria
+
+**Objetivo:** garantir rastreabilidade.
+
+### Eventos
+
+* login;
+* criação;
+* alteração;
+* exclusão lógica;
+* aprovação;
+* alteração de permissões;
+* acesso a documentos;
+* geração de documentos;
+* alterações críticas do PGR.
+
+### Registro
+
+```text
+Usuário
+Tenant
+Ação
+Entidade
+Registro
+Data/Hora
+IP
+Resultado
+```
+
+---
+
+# 11. FASE 10 — Testes e Homologação
+
+**Objetivo:** validar o MVP antes da publicação.
+
+### Testes
+
+* Unitários;
+* Integração;
+* Feature;
+* Autorização;
+* Multi-tenancy;
+* Segurança;
+* Fluxos críticos;
+* E2E.
+
+### Fluxo crítico obrigatório
+
+```text
+Tenant
+ ↓
+Empresa
+ ↓
+Estabelecimento
+ ↓
+Setor
+ ↓
+Trabalhador
+ ↓
+Perigo
+ ↓
+Risco
+ ↓
+Avaliação
+ ↓
+Controle
+ ↓
+PGR
+ ↓
+Plano de Ação
+ ↓
+Dashboard
+```
+
+---
+
+# 12. FASE 11 — Deploy
+
+**Objetivo:** disponibilizar o MVP.
+
+### Componentes
+
+```text
+Internet
+   ↓
+Nginx
+   ↓
+Laravel
+   ├── MySQL
+   ├── Redis
+   └── Storage
+```
+
+### DevOps
+
+* Docker;
+* CI/CD;
+* GitHub Actions;
+* variáveis de ambiente;
+* migrations;
+* backup;
+* logs;
+* monitoramento.
+
+---
+
+# 13. Ordem Consolidada
+
+| Fase | Área                | Prioridade |
+| ---- | ------------------- | ---------- |
+| 01   | Fundação Técnica    | P0         |
+| 02   | IAM + Multi-Tenancy | P0         |
+| 03   | Organização         | P0         |
+| 04   | Trabalhadores       | P0         |
+| 05   | Perigos e Riscos    | P0         |
+| 06   | GRO/PGR             | P0         |
+| 07   | Documentos          | P0         |
+| 08   | Dashboard           | P0         |
+| 09   | Auditoria           | P0         |
+| 10   | Testes              | P0         |
+| 11   | Deploy              | P0         |
+
+---
+
+# 14. Critério de conclusão do MVP
+
+O MVP será considerado concluído quando um tenant conseguir executar o fluxo completo:
+
+```text
+Cadastrar empresa
+      ↓
+Cadastrar estabelecimento
+      ↓
+Cadastrar setor
+      ↓
+Cadastrar trabalhador
+      ↓
+Cadastrar perigo
+      ↓
+Cadastrar risco
+      ↓
+Avaliar risco
+      ↓
+Cadastrar controle
+      ↓
+Criar PGR
+      ↓
+Gerar inventário
+      ↓
+Criar plano de ação
+      ↓
+Acompanhar ações
+      ↓
+Gerar documento
+      ↓
+Consultar dashboard
+      ↓
+Consultar auditoria
+```
+
+---
+
+# 15. O que NÃO entra no MVP
+
+Para evitar expansão excessiva do escopo, ficam fora da primeira versão:
+
+* PCMSO completo;
+* gestão completa de exames;
+* ASO;
+* EPI;
+* treinamentos;
+* CIPA;
+* acidentes/CAT;
+* LTCAT;
+* PPP;
+* todos os requisitos das NRs;
+* eSocial;
+* IA/ML;
+* aplicativo mobile;
+* arquitetura de microserviços;
+* Kubernetes;
+* billing complexo.
+
+Esses recursos serão desenvolvidos posteriormente.
+
+---
+
+# Resultado da Etapa
+
+O SST360 possui agora um roadmap de implementação do MVP baseado em dependências reais do domínio.
+
+A primeira versão terá como núcleo:
+
+**Multi-Tenancy + IAM + Organização + Trabalhadores + Riscos + GRO/PGR + Documentos + Dashboard + Auditoria.**
