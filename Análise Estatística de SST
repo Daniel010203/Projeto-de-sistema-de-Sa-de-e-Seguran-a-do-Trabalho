@@ -1,0 +1,642 @@
+Vamos avançar.
+
+# SST360 — FASE 14.4
+
+## Análise Estatística de SST
+
+Nesta etapa vamos definir **como o SST360 transforma os dados registrados em evidências estatísticas** antes de utilizar Machine Learning.
+
+A sequência será:
+
+```text
+Dados SST
+   ↓
+Qualidade dos dados
+   ↓
+Estatística descritiva
+   ↓
+Análise temporal
+   ↓
+Associação entre variáveis
+   ↓
+Detecção de anomalias
+   ↓
+Modelagem estatística
+   ↓
+Machine Learning
+```
+
+---
+
+# 1. Objetivo
+
+A análise estatística deverá responder perguntas como:
+
+* Quais setores concentram mais ocorrências?
+* Quais riscos aparecem com maior frequência?
+* Existe aumento ou redução das ocorrências?
+* Há sazonalidade?
+* Quais fatores estão associados às ocorrências?
+* Quais condições aparecem antes dos eventos?
+* Existem padrões de reincidência?
+* Existem alterações estatisticamente relevantes?
+* Quais indicadores apresentam comportamento anormal?
+
+Importante: **associação estatística não significa causalidade**. O sistema deverá preservar essa distinção.
+
+---
+
+# 2. Estatística descritiva
+
+Será a primeira camada.
+
+Para variáveis numéricas:
+
+* média;
+* mediana;
+* mínimo;
+* máximo;
+* quartis;
+* variância;
+* desvio-padrão;
+* coeficiente de variação, quando apropriado.
+
+Para variáveis categóricas:
+
+* frequência absoluta;
+* frequência relativa;
+* distribuição percentual.
+
+Exemplo:
+
+```text
+Ocorrências — Manutenção
+
+Total: 42
+
+Acidentes:       8
+Incidentes:     14
+Quase acidentes:20
+
+Mediana mensal:  3
+Máximo mensal:    7
+```
+
+---
+
+# 3. Distribuição das ocorrências
+
+O sistema deverá analisar a distribuição por:
+
+```text
+Empresa
+   ↓
+Estabelecimento
+   ↓
+Setor
+   ↓
+Função
+   ↓
+Atividade
+   ↓
+Risco
+   ↓
+Tipo de ocorrência
+```
+
+Isso permitirá identificar concentração.
+
+Mas devemos evitar conclusões simplistas como:
+
+> "O setor X é perigoso."
+
+O correto seria algo como:
+
+> "O setor X apresentou maior taxa de ocorrência no período analisado, considerando a população e exposição disponíveis."
+
+---
+
+# 4. Análise temporal
+
+A dimensão temporal será fundamental para a previsibilidade.
+
+Vamos analisar:
+
+### Tendência
+
+```text
+Jan → 4
+Fev → 5
+Mar → 5
+Abr → 7
+Mai → 8
+Jun → 10
+```
+
+Pergunta:
+
+**Existe tendência estatisticamente relevante?**
+
+### Sazonalidade
+
+Por exemplo:
+
+```text
+2024
+Jan  ███
+Fev  ██
+Mar  ███
+...
+```
+
+Compararemos períodos equivalentes quando houver histórico suficiente.
+
+### Variação
+
+Também podemos analisar:
+
+* MoM — mês contra mês;
+* YoY — ano contra ano;
+* média móvel;
+* variação percentual;
+* desvio em relação à linha de base.
+
+---
+
+# 5. Linha de base
+
+O SST360 deverá criar uma **baseline**.
+
+Exemplo:
+
+```text
+Histórico:
+média = 5 ocorrências/mês
+desvio padrão = 1,2
+
+Mês atual:
+10 ocorrências
+```
+
+O sistema pode sinalizar:
+
+> **Valor acima do comportamento histórico esperado.**
+
+Isso é diferente de afirmar que existe um problema causal.
+
+---
+
+# 6. Análise de associação
+
+Agora começamos a investigar relações entre variáveis.
+
+Exemplos:
+
+```text
+Treinamento
+      ↕
+Ocorrências
+
+Ações vencidas
+      ↕
+Ocorrências
+
+Exposição
+      ↕
+Ocorrências
+
+Não conformidades
+      ↕
+Ocorrências
+```
+
+Dependendo do tipo de variável, poderemos utilizar:
+
+* correlação de Pearson;
+* correlação de Spearman;
+* tabelas de contingência;
+* qui-quadrado;
+* testes de proporções;
+* outros testes adequados ao desenho dos dados.
+
+A técnica será escolhida conforme a natureza e distribuição dos dados.
+
+---
+
+# 7. Exemplo de análise
+
+Suponha que o sistema encontre:
+
+```text
+Setores com maior número de ações vencidas
+          ↓
+apresentaram também
+          ↓
+maior taxa de ocorrências
+```
+
+Isso pode justificar uma investigação estatística mais aprofundada.
+
+Mas não devemos concluir automaticamente:
+
+> "Ações vencidas causam acidentes."
+
+O sistema deve registrar:
+
+**associação observada → análise adicional → hipótese.**
+
+---
+
+# 8. Testes de hipótese
+
+Quando tivermos dados suficientes, podemos testar hipóteses.
+
+Exemplo:
+
+### H₀
+
+Não existe diferença relevante entre as taxas de ocorrência dos grupos analisados.
+
+### H₁
+
+Existe diferença relevante.
+
+O sistema poderá calcular:
+
+* estatística do teste;
+* p-value;
+* intervalo de confiança;
+* tamanho do efeito, quando aplicável.
+
+Isso é muito mais robusto do que simplesmente mostrar uma correlação.
+
+---
+
+# 9. Tamanho do efeito
+
+Uma melhoria importante:
+
+**não devemos olhar somente para significância estatística.**
+
+Uma diferença pode ser estatisticamente significativa e, ainda assim, ter pouca relevância prática.
+
+Portanto, quando apropriado, analisaremos:
+
+* tamanho do efeito;
+* intervalo de confiança;
+* magnitude da diferença.
+
+Isso aproxima o SST360 de uma análise profissional de dados.
+
+---
+
+# 10. Análise de reincidência
+
+Vamos aproveitar o modelo de ocorrências que definimos anteriormente.
+
+Podemos identificar:
+
+```text
+Evento
+ ↓
+Investigação
+ ↓
+Causa/fator
+ ↓
+Ação
+ ↓
+Controle
+ ↓
+Novo evento semelhante
+```
+
+Então podemos calcular:
+
+**Taxa de reincidência**
+
+e analisar:
+
+* tempo até reincidência;
+* setor;
+* risco;
+* causa;
+* controle adotado;
+* ação corretiva;
+* status da ação.
+
+Essa variável poderá futuramente ser extremamente útil para modelos preditivos.
+
+---
+
+# 11. Detecção de anomalias
+
+O SST360 também poderá identificar comportamentos fora do padrão.
+
+Exemplo:
+
+```text
+Histórico do setor:
+
+4
+5
+5
+6
+5
+4
+5
+6
+5
+        ↓
+       18
+```
+
+O sistema sinaliza:
+
+**Comportamento atípico detectado.**
+
+Isso não significa automaticamente acidente ou falha.
+
+Significa:
+
+> **o comportamento observado merece investigação.**
+
+Podemos posteriormente avaliar técnicas como:
+
+* Z-score;
+* IQR;
+* média móvel;
+* controle estatístico de processo;
+* métodos específicos para séries temporais.
+
+---
+
+# 12. Controle estatístico de processo
+
+Para determinados indicadores, podemos estudar **Statistical Process Control — SPC**.
+
+Exemplo:
+
+```text
+Indicador
+   │
+   ├── linha central
+   ├── limite superior
+   └── limite inferior
+```
+
+Isso permitiria identificar:
+
+* pontos fora dos limites;
+* mudanças persistentes;
+* tendências;
+* padrões não aleatórios.
+
+É uma abordagem interessante principalmente para indicadores operacionais com histórico suficiente.
+
+---
+
+# 13. Modelagem estatística
+
+Depois da análise exploratória, poderemos utilizar modelos estatísticos.
+
+### Regressão logística
+
+Para problemas binários:
+
+```text
+Ocorrência nos próximos 30 dias?
+        ↓
+      0 / 1
+```
+
+### Poisson
+
+Para contagem de eventos, quando as premissas forem adequadas.
+
+```text
+Número de ocorrências
+```
+
+### Binomial negativa
+
+Pode ser considerada quando houver **overdispersion** em dados de contagem.
+
+### Sobrevivência
+
+Pode responder perguntas como:
+
+> Quanto tempo até uma nova ocorrência?
+
+ou:
+
+> Quanto tempo até a reincidência?
+
+---
+
+# 14. Variáveis explicativas
+
+O modelo poderá utilizar variáveis como:
+
+```text
+Exposição
+Risco
+Setor
+Função
+Histórico de ocorrências
+Não conformidades
+Ações vencidas
+Treinamentos
+Controles
+Horas trabalhadas
+Número de trabalhadores
+Reincidência
+Mudanças operacionais
+```
+
+Mas haverá uma etapa intermediária:
+
+## Feature Engineering
+
+Vamos transformar dados brutos em variáveis analíticas.
+
+Exemplo:
+
+```text
+ações_vencidas = 7
+```
+
+pode gerar:
+
+```text
+taxa_acoes_vencidas = ações_vencidas / ações_abertas
+```
+
+ou:
+
+```text
+historico_ocorrencias_90d
+```
+
+ou:
+
+```text
+ocorrencia_recente = 1
+```
+
+Isso será fundamental para os modelos.
+
+---
+
+# 15. Evitando vazamento de informação
+
+Teremos uma preocupação importante:
+
+## Data Leakage
+
+O modelo não pode utilizar uma informação que só estaria disponível **depois do evento que estamos tentando prever**.
+
+Exemplo incorreto:
+
+```text
+Prever acidente de junho
+        ↓
+usar investigação do acidente de junho
+```
+
+Isso contaminaria o modelo.
+
+O correto:
+
+```text
+Dados disponíveis até maio
+        ↓
+prever junho
+```
+
+Essa regra será incorporada à arquitetura de Ciência de Dados.
+
+---
+
+# 16. Divisão temporal dos dados
+
+Para problemas preditivos, não vamos simplesmente fazer um `train_test_split` aleatório.
+
+Preferencialmente:
+
+```text
+Histórico antigo
+      ↓
+Treinamento
+
+Período posterior
+      ↓
+Validação
+
+Período mais recente
+      ↓
+Teste
+```
+
+Isso simula melhor a situação real:
+
+> **usar o passado para estimar o futuro.**
+
+---
+
+# 17. Métricas dos modelos
+
+Quando chegarmos ao Machine Learning, não vamos avaliar somente "acertou/errou".
+
+Dependendo do problema, poderemos utilizar:
+
+* Accuracy;
+* Precision;
+* Recall;
+* F1-score;
+* ROC-AUC;
+* PR-AUC;
+* matriz de confusão;
+* calibração;
+* MAE;
+* RMSE;
+* outras métricas apropriadas.
+
+Para SST, **Recall pode ser particularmente relevante em determinados cenários**, porque deixar passar determinados eventos de interesse pode ser mais problemático do que gerar uma investigação adicional. Porém, isso deverá ser definido conforme o caso de uso, e não aplicado indiscriminadamente.
+
+---
+
+# 18. Arquitetura estatística
+
+Nossa arquitetura agora fica:
+
+```text
+                   DADOS SST360
+                        │
+                        ▼
+                 Qualidade dos dados
+                        │
+                        ▼
+               Estatística descritiva
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+       Temporal     Associação    Distribuição
+          │             │             │
+          └─────────────┼─────────────┘
+                        ▼
+                  Testes estatísticos
+                        │
+                        ▼
+                Modelagem estatística
+                        │
+                        ▼
+                 Feature Engineering
+                        │
+                        ▼
+                  Machine Learning
+                        │
+                        ▼
+               Predição / Forecast
+                        │
+                        ▼
+              SST360 Intelligence
+```
+
+---
+
+# 19. Princípios metodológicos definidos
+
+A partir desta etapa, o SST360 seguirá alguns princípios:
+
+1. **Não confundir correlação com causalidade.**
+2. **Não utilizar Machine Learning antes de validar os dados.**
+3. **Evitar data leakage.**
+4. **Considerar exposição/população ao comparar ocorrências.**
+5. **Preferir validação temporal em problemas de previsão.**
+6. **Registrar metodologia e versão dos indicadores.**
+7. **Medir incerteza quando aplicável.**
+8. **Explicar os fatores associados às previsões.**
+9. **Não tratar previsão como certeza.**
+10. **A análise deve apoiar, e não substituir, a avaliação técnica de SST.**
+
+---
+
+## Status da FASE 14
+
+| Etapa                                   | Status     |
+| --------------------------------------- | ---------- |
+| **14.1 Engenharia dos Dados SST**       | ✅          |
+| **14.2 Modelo de Dados de Ocorrências** | ✅          |
+| **14.3 Indicadores de SST**             | ✅          |
+| **14.4 Análise Estatística**            | ✅          |
+| **14.5 Feature Engineering**            | ⏭️ Próxima |
+| 14.6 Modelos Preditivos                 | ⏳          |
+| 14.7 Explainable AI                     | ⏳          |
+| 14.8 Monitoramento dos Modelos          | ⏳          |
+| 14.9 Dashboard Preditivo                | ⏳          |
+
+### Próximo passo
+
+A próxima etapa será **14.5 — Feature Engineering para SST**.
+
+Nela vamos transformar os dados do SST360 em variáveis que possam efetivamente alimentar os modelos. É aqui que começaremos a desenhar, por exemplo, **janela de 7/30/90 dias, histórico de ocorrências, reincidência, exposição, ações vencidas, tendência e comportamento dos riscos**.
