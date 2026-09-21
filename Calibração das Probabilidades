@@ -1,0 +1,590 @@
+## FASE 14.6 — Modelos Preditivos
+
+### 14.6.7 — Calibração das Probabilidades
+
+Agora vamos tratar de um ponto especialmente importante para o SST360: **uma previsão probabilística precisa ser interpretável como probabilidade**.
+
+O PRED-001 não deverá apenas dizer:
+
+> "Setor A = classe 1."
+
+Ele deverá responder:
+
+> "Com os dados disponíveis até a data de corte, o modelo estima uma probabilidade de X% de ocorrer pelo menos uma ocorrência nos próximos 30 dias."
+
+Para isso, precisamos verificar e, se necessário, calibrar as probabilidades.
+
+---
+
+# 1. O que significa uma previsão calibrada?
+
+Imagine que o modelo produza 100 previsões próximas de:
+
+```text
+70%
+```
+
+Se aproximadamente 70 desses casos realmente apresentarem ocorrência, o modelo está bem calibrado nessa faixa.
+
+Se apenas 30 ocorrerem:
+
+```text
+modelo → 70%
+realidade → 30%
+```
+
+o modelo está **superestimando**.
+
+Se 90 ocorrerem:
+
+```text
+modelo → 70%
+realidade → 90%
+```
+
+está **subestimando**.
+
+---
+
+# 2. Discriminação ≠ calibração
+
+São conceitos diferentes.
+
+### Discriminação
+
+Pergunta:
+
+> O modelo consegue colocar casos com ocorrência acima dos casos sem ocorrência?
+
+### Calibração
+
+Pergunta:
+
+> A probabilidade informada pelo modelo corresponde razoavelmente à frequência observada?
+
+Um modelo pode ter boa discriminação e má calibração.
+
+Portanto:
+
+```text
+Bom modelo
+=
+Discriminação
++
+Calibração
+```
+
+não apenas uma métrica.
+
+---
+
+# 3. Exemplo
+
+Suponha:
+
+```text
+Setor A → 90%
+Setor B → 70%
+Setor C → 20%
+Setor D → 10%
+```
+
+O modelo pode ordenar corretamente:
+
+```text
+A > B > C > D
+```
+
+Isso indica boa capacidade de discriminação.
+
+Mas se na realidade os setores A e B apresentarem ocorrência somente 40% das vezes, as probabilidades estarão superestimadas.
+
+---
+
+# 4. Brier Score
+
+Continuaremos utilizando o **Brier Score**.
+
+$$
+BS = \frac{1}{N}\sum_{i=1}^{N}(p_i-y_i)^2
+$$
+
+Onde:
+
+* \(p_i\) = probabilidade prevista;
+* \(y_i\) = resultado real;
+* \(N\) = quantidade de observações.
+
+Para classificação binária:
+
+```text
+y = 0
+ou
+y = 1
+```
+
+Quanto menor o erro, melhor.
+
+---
+
+# 5. Curva de calibração
+
+Vamos dividir as previsões em faixas de probabilidade.
+
+Por exemplo:
+
+```text
+0–10%
+10–20%
+20–30%
+30–40%
+...
+90–100%
+```
+
+Depois comparamos:
+
+```text
+probabilidade prevista
+×
+frequência realmente observada
+```
+
+Exemplo conceitual:
+
+| Probabilidade prevista | Ocorrência observada |
+| ---------------------: | -------------------: |
+|                    10% |                   8% |
+|                    20% |                  22% |
+|                    30% |                  28% |
+|                    40% |                  43% |
+|                    50% |                  48% |
+|                    60% |                  63% |
+|                    70% |                  69% |
+|                    80% |                  78% |
+
+Quanto mais próxima a relação estiver da diagonal ideal, melhor.
+
+---
+
+# 6. Por que modelos diferentes podem precisar de calibração?
+
+Alguns algoritmos produzem probabilidades que não estão naturalmente bem calibradas.
+
+Por exemplo:
+
+* Random Forest;
+* Gradient Boosting;
+* outros ensembles.
+
+A classificação pode ser boa, mas a probabilidade pode estar excessivamente concentrada.
+
+Exemplo:
+
+```text
+0,02
+0,04
+0,97
+0,99
+```
+
+quando a realidade seria melhor representada por:
+
+```text
+0,15
+0,30
+0,75
+0,85
+```
+
+A calibração pode melhorar essa correspondência.
+
+---
+
+# 7. Método 1 — Platt Scaling
+
+Um dos métodos que poderemos testar é o **Platt Scaling**.
+
+A ideia geral:
+
+```text
+Predição do modelo
+        ↓
+modelo de calibração
+        ↓
+probabilidade calibrada
+```
+
+Ele utiliza uma transformação logística para ajustar as probabilidades.
+
+É particularmente útil quando a relação entre a saída original e a frequência observada pode ser aproximada de maneira relativamente simples.
+
+---
+
+# 8. Método 2 — Isotonic Regression
+
+Outra alternativa será:
+
+**Isotonic Regression**
+
+Ela permite uma relação não linear, desde que mantenha a ordem das probabilidades.
+
+Conceitualmente:
+
+```text
+probabilidade original
+        │
+        ▼
+Isotonic Regression
+        │
+        ▼
+probabilidade calibrada
+```
+
+Pode ser mais flexível que Platt Scaling.
+
+Porém, essa flexibilidade também pode aumentar o risco de overfitting quando temos poucos dados.
+
+---
+
+# 9. Não vamos calibrar automaticamente
+
+A decisão será baseada nos dados.
+
+Podemos comparar:
+
+```text
+Modelo original
+        │
+        ├── Brier Score
+        └── Calibration Curve
+
+Modelo + Platt
+        │
+        ├── Brier Score
+        └── Calibration Curve
+
+Modelo + Isotonic
+        │
+        ├── Brier Score
+        └── Calibration Curve
+```
+
+E verificar se a calibração realmente melhorou.
+
+---
+
+# 10. Regra contra data leakage
+
+Essa parte é crítica.
+
+Não podemos fazer:
+
+```text
+treinar modelo
+      ↓
+calibrar usando o conjunto de teste
+      ↓
+avaliar no mesmo teste
+```
+
+Isso contaminaria a avaliação.
+
+O conjunto de teste precisa permanecer protegido.
+
+---
+
+# 11. Estrutura correta
+
+Podemos utilizar:
+
+```text
+TREINAMENTO
+     │
+     ▼
+Modelo
+     │
+     ▼
+VALIDAÇÃO
+     │
+     ▼
+Calibração
+     │
+     ▼
+Modelo + calibrador
+     │
+     ▼
+TESTE FINAL
+```
+
+O teste só entra depois que:
+
+* modelo;
+* hiperparâmetros;
+* método de calibração
+
+já estiverem definidos.
+
+---
+
+# 12. No contexto temporal
+
+Como nosso problema é temporal, o cuidado é ainda maior.
+
+Exemplo:
+
+```text
+2024–2025
+TREINAMENTO
+
+01/2026–06/2026
+VALIDAÇÃO / CALIBRAÇÃO
+
+07/2026–12/2026
+TESTE
+```
+
+A calibração deverá utilizar um período posterior ao treinamento e anterior ao teste.
+
+Assim mantemos:
+
+```text
+PASSADO
+   ↓
+modelo
+   ↓
+calibração
+   ↓
+FUTURO NÃO VISTO
+```
+
+---
+
+# 13. Calibração temporal progressiva
+
+Quando tivermos quantidade de dados suficiente, podemos utilizar uma abordagem semelhante a:
+
+```text
+Fold 1
+Treino → Calibração → Teste
+
+Fold 2
+Treino maior → Calibração → Teste
+
+Fold 3
+Treino ainda maior → Calibração → Teste
+```
+
+Isso permite observar se o calibrador continua funcionando conforme o comportamento dos dados muda.
+
+---
+
+# 14. Qual modelo de calibração usar?
+
+Não vamos escolher antecipadamente.
+
+A metodologia será:
+
+### Modelo simples
+
+```text
+Sem calibração
+```
+
+Depois:
+
+```text
+Platt Scaling
+```
+
+Depois:
+
+```text
+Isotonic Regression
+```
+
+E comparar.
+
+A opção escolhida deverá apresentar melhora ou manutenção consistente da qualidade probabilística sem criar instabilidade.
+
+---
+
+# 15. Exemplo de avaliação
+
+Imagine:
+
+| Modelo              | Brier | ROC-AUC | PR-AUC |
+| ------------------- | ----: | ------: | -----: |
+| Logistic original   |  0,18 |    0,74 |   0,42 |
+| Logistic + Platt    |  0,17 |    0,74 |   0,42 |
+| Logistic + Isotonic |  0,16 |    0,73 |   0,41 |
+
+Nesse exemplo hipotético, a calibração melhorou o Brier Score.
+
+Mas houve pequena alteração em outras métricas.
+
+Precisaremos analisar o conjunto completo de evidências, e não escolher automaticamente pelo menor número.
+
+---
+
+# 16. Probabilidade x classificação
+
+Esse ponto será importante na interface do SST360.
+
+O modelo deverá guardar a **probabilidade**, não apenas:
+
+```text
+0 ou 1
+```
+
+Por exemplo:
+
+```text
+probability = 0.673
+```
+
+A interface pode apresentar:
+
+```text
+67,3%
+```
+
+E o threshold para classificação poderá ser definido separadamente.
+
+Isso permite alterar o threshold posteriormente sem precisar treinar novamente o modelo.
+
+---
+
+# 17. Estrutura conceitual do resultado
+
+Uma previsão do SST360 poderá possuir:
+
+```text
+prediction
+├── tenant_id
+├── sector_id
+├── model_version
+├── feature_version
+├── cutoff_date
+├── horizon_days
+├── probability
+├── threshold
+├── predicted_class
+├── generated_at
+└── explanation_reference
+```
+
+Exemplo:
+
+```text
+tenant_id: 10
+sector_id: 35
+model_version: PRED-001-v1.0
+feature_version: FE-001-v1.0
+cutoff_date: 01/10/2026
+horizon_days: 30
+probability: 0.673
+threshold: 0.50
+predicted_class: 1
+```
+
+Essa estrutura será detalhada posteriormente na arquitetura de dados do módulo de Inteligência.
+
+---
+
+# 18. Calibração não significa certeza
+
+Mesmo uma probabilidade bem calibrada não significa:
+
+> "Existe 67,3% de chance de um acidente específico acontecer."
+
+O significado correto será:
+
+> **Dentro da população e das condições representadas pelos dados utilizados para validação, previsões próximas de 67% devem apresentar ocorrência aproximadamente nessa frequência, dentro das limitações estatísticas do modelo.**
+
+Essa distinção deverá aparecer na documentação do produto.
+
+---
+
+# 19. Governança
+
+Cada modelo de produção deverá possuir:
+
+```text
+Modelo
+   │
+   ├── versão
+   ├── dataset utilizado
+   ├── período
+   ├── features
+   ├── algoritmo
+   ├── parâmetros
+   ├── calibrador
+   ├── métricas
+   ├── data de treinamento
+   └── responsável
+```
+
+Isso permite reconstruir e auditar a origem da previsão.
+
+---
+
+# 20. Resultado oficial da 14.6.7
+
+A estratégia de calibração do SST360 será:
+
+```text
+Modelo
+   ↓
+Probabilidade bruta
+   ↓
+Avaliação de calibração
+   ↓
+Sem calibração
+   │
+   ├── Platt Scaling
+   │
+   └── Isotonic Regression
+   ↓
+Comparação
+   ↓
+Calibrador selecionado
+   ↓
+Teste final
+   ↓
+Probabilidade utilizada pelo produto
+```
+
+Com as seguintes regras:
+
+1. Brier Score será utilizado.
+2. Curvas de calibração serão analisadas.
+3. Platt Scaling será candidato.
+4. Isotonic Regression será candidato.
+5. O teste permanecerá isolado.
+6. A calibração respeitará a ordem temporal.
+7. O modelo armazenará probabilidades, não somente classes.
+8. Modelo e calibrador terão versionamento.
+9. A calibração não será interpretada como garantia de ocorrência.
+10. A qualidade probabilística será monitorada posteriormente.
+
+---
+
+## Status da FASE 14.6
+
+| Etapa                              | Status |
+| ---------------------------------- | ------ |
+| 14.6.1 Definição do PRED-001       | ✅      |
+| 14.6.2 Dataset                     | ✅      |
+| 14.6.3 Treino/Validação/Teste      | ✅      |
+| 14.6.4 Baseline Estatístico        | ✅      |
+| 14.6.5 Modelos candidatos          | ✅      |
+| 14.6.6 Avaliação                   | ✅      |
+| **14.6.7 Calibração**              | **✅**  |
+| **14.6.8 Seleção e versionamento** | ⏳      |
+
+### Próximo passo
+
+**14.6.8 — Seleção e Versionamento do Modelo PRED-001.**
+
+Nessa etapa vamos fechar o ciclo: definir **como o SST360 escolherá o modelo de produção, como ele será versionado, quais metadados serão armazenados, como será feita a aprovação e como uma nova versão poderá substituir uma versão anterior sem perder a rastreabilidade.**
