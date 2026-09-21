@@ -1,0 +1,847 @@
+## FASE 14.9 — Dashboard Preditivo SST
+
+Esta é a última etapa da FASE 14. Aqui vamos transformar toda a arquitetura de dados, estatística e modelos preditivos em uma **camada de informação operacional para o SST360**.
+
+O dashboard não será apenas um painel de "previsões". Ele deverá conectar:
+
+**dados históricos → indicadores → riscos → prevenção → previsão → explicação → ação.**
+
+---
+
+# 14.9.1 — Objetivo
+
+O Dashboard Preditivo deverá permitir que o profissional de SST responda rapidamente:
+
+1. Onde estão os principais sinais de atenção?
+2. Quais setores apresentam maior probabilidade estimada de ocorrência?
+3. Quais fatores estão associados a essas estimativas?
+4. Quais riscos e controles estão relacionados?
+5. Existem ações vencidas ou não concluídas?
+6. Como os indicadores estão evoluindo?
+7. O modelo continua confiável?
+8. Quais situações precisam de avaliação técnica?
+
+O sistema **não deverá decidir automaticamente qual ação de SST deve ser tomada**.
+
+---
+
+# 14.9.2 — Estrutura geral
+
+A arquitetura será:
+
+```text
+┌─────────────────────────────────────────┐
+│           DASHBOARD SST360              │
+├─────────────────────────────────────────┤
+│                                         │
+│ Indicadores                             │
+│ Riscos                                  │
+│ Ocorrências                             │
+│ Prevenção                               │
+│ Previsões                               │
+│ Explicações                             │
+│ Ações                                   │
+│                                         │
+└─────────────────────────────────────────┘
+                    │
+                    ▼
+             Camada Analítica
+                    │
+        ┌───────────┼───────────┐
+        ▼           ▼           ▼
+     Dados       Estatística   ML
+```
+
+---
+
+# 14.9.3 — Princípio do dashboard
+
+Precisamos evitar transformar o dashboard em uma tela cheia de gráficos.
+
+A lógica será:
+
+```text
+Visão geral
+    ↓
+Identificação
+    ↓
+Investigação
+    ↓
+Explicação
+    ↓
+Ação
+```
+
+Ou seja:
+
+> **O dashboard deve ajudar o usuário a passar do indicador para a investigação.**
+
+---
+
+# 14.9.4 — Níveis de visualização
+
+Teremos inicialmente quatro níveis.
+
+### Nível 1 — Executivo
+
+Para gestores.
+
+Foco:
+
+* visão geral;
+* tendências;
+* principais indicadores;
+* setores que merecem atenção;
+* evolução preventiva.
+
+---
+
+### Nível 2 — Gestão SST
+
+Para gestores e coordenadores de SST.
+
+Foco:
+
+* riscos;
+* ocorrências;
+* ações;
+* treinamentos;
+* controles;
+* previsões.
+
+---
+
+### Nível 3 — Técnico SST
+
+Para técnicos e engenheiros.
+
+Foco:
+
+* setores;
+* riscos;
+* exposições;
+* controles;
+* ocorrências;
+* fatores associados;
+* investigação.
+
+---
+
+### Nível 4 — Analítico
+
+Para usuários autorizados.
+
+Foco:
+
+* modelo;
+* métricas;
+* features;
+* calibração;
+* drift;
+* histórico das previsões.
+
+---
+
+# 14.9.5 — Dashboard Executivo
+
+A primeira tela poderá apresentar:
+
+```text
+┌─────────────────────────────────────────────┐
+│             VISÃO GERAL SST                 │
+├─────────────────────────────────────────────┤
+│                                             │
+│ Ocorrências     Riscos Altos    Ações       │
+│     24              18            37        │
+│                                             │
+│ ─────────────────────────────────────────── │
+│                                             │
+│ Tendência de Ocorrências                    │
+│                                             │
+│       gráfico temporal                      │
+│                                             │
+│ ─────────────────────────────────────────── │
+│                                             │
+│ Setores com maior atenção                   │
+│                                             │
+│ Produção       67%                           │
+│ Manutenção     61%                           │
+│ Logística      48%                           │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+Os números são apenas ilustrativos.
+
+---
+
+# 14.9.6 — Indicadores principais
+
+O dashboard poderá utilizar o catálogo definido na FASE 14.3.
+
+Exemplos:
+
+* acidentes;
+* incidentes;
+* quase acidentes;
+* ocorrências totais;
+* frequência;
+* gravidade;
+* dias perdidos;
+* ações vencidas;
+* taxa de conclusão;
+* não conformidades;
+* reincidências;
+* treinamentos válidos;
+* cobertura de treinamento;
+* riscos altos;
+* riscos sem controle adequado;
+* controles vencidos;
+* trabalhadores expostos.
+
+---
+
+# 14.9.7 — Leading e Lagging Indicators
+
+Essa distinção deverá aparecer claramente.
+
+### Lagging
+
+Representam eventos já ocorridos:
+
+```text
+Acidentes
+Incidentes
+Dias perdidos
+Gravidade
+Ocorrências
+```
+
+### Leading
+
+Representam sinais preventivos:
+
+```text
+Ações vencidas
+Não conformidades
+Riscos sem controle
+Treinamentos vencidos
+Inspeções
+Quase acidentes
+Controles ineficazes
+```
+
+O dashboard deverá permitir observar ambos.
+
+---
+
+# 14.9.8 — Tendência temporal
+
+O usuário poderá analisar:
+
+```text
+Dia
+Semana
+Mês
+Trimestre
+Semestre
+Ano
+```
+
+Exemplo:
+
+```text
+Ocorrências
+
+Jan ────
+Fev ──────
+Mar ─────────
+Abr ─────
+Mai ───────────
+Jun ─────────────
+```
+
+Além do valor absoluto, o sistema poderá mostrar:
+
+* variação;
+* média móvel;
+* tendência;
+* comparação com período anterior.
+
+---
+
+# 14.9.9 — Visão por setor
+
+Essa será uma das principais telas.
+
+```text
+SETOR              OCORR.    RISCO    AÇÕES    PREDIÇÃO
+
+Produção              8        5        12        67%
+Manutenção             5        4         8        61%
+Logística              4        3         5        48%
+Administrativo         1        1         2        17%
+```
+
+O usuário poderá selecionar:
+
+* empresa;
+* estabelecimento;
+* setor;
+* função;
+* período.
+
+---
+
+# 14.9.10 — Não ordenar simplesmente por "maior risco"
+
+Aqui devemos manter uma distinção importante.
+
+O dashboard não deverá tratar automaticamente:
+
+```text
+67%
+```
+
+como:
+
+```text
+"setor mais perigoso"
+```
+
+O valor representa:
+
+> **probabilidade estimada pelo modelo para o horizonte definido.**
+
+O usuário deverá conseguir analisar também:
+
+* quantidade de trabalhadores;
+* exposição;
+* riscos;
+* histórico;
+* ações;
+* controles;
+* ocorrências.
+
+---
+
+# 14.9.11 — Tela de previsão
+
+Ao clicar em um setor:
+
+```text
+┌──────────────────────────────────────┐
+│ PREVISÃO — PRODUÇÃO                  │
+├──────────────────────────────────────┤
+│                                      │
+│ Probabilidade estimada               │
+│                                      │
+│             67%                      │
+│                                      │
+│ Horizonte: 30 dias                   │
+│ Referência: 01/10/2026              │
+│ Modelo: PRED-001-v1.0.0             │
+│                                      │
+├──────────────────────────────────────┤
+│ Fatores associados                   │
+│                                      │
+│ ↑ Ocorrências 90d                    │
+│ ↑ Ações vencidas                     │
+│ ↑ Riscos sem controle                │
+│ ↓ Cobertura treinamento              │
+│                                      │
+├──────────────────────────────────────┤
+│ [Ver dados] [Ver riscos] [Ver ações]│
+└──────────────────────────────────────┘
+```
+
+---
+
+# 14.9.12 — Histórico de previsão
+
+O profissional poderá consultar:
+
+```text
+Setor Produção
+
+Data       Probabilidade    Resultado
+01/07         51%              -
+01/08         58%              SIM
+01/09         63%              NÃO
+01/10         67%              -
+```
+
+Isso cria uma ponte entre:
+
+```text
+previsão
+```
+
+e:
+
+```text
+resultado observado
+```
+
+---
+
+# 14.9.13 — Fatores associados
+
+A tela deverá apresentar os principais fatores utilizados na explicação.
+
+Exemplo:
+
+```text
+Fatores associados à estimativa
+
+1. Ocorrências nos últimos 90 dias
+2. Ações vencidas
+3. Riscos sem controle adequado
+4. Crescimento recente da população
+5. Cobertura de treinamento
+```
+
+O sistema deverá deixar claro que:
+
+> Esses fatores são utilizados pelo modelo e estão associados à estimativa; eles não constituem, por si só, uma determinação causal.
+
+---
+
+# 14.9.14 — Ligação com os módulos operacionais
+
+Essa é uma das características mais importantes do SST360.
+
+A previsão não deverá ficar isolada.
+
+Por exemplo:
+
+```text
+Previsão elevada
+      ↓
+Fatores associados
+      ↓
+Risco sem controle
+      ↓
+Abrir avaliação do risco
+```
+
+Outro fluxo:
+
+```text
+Previsão elevada
+      ↓
+Ações vencidas
+      ↓
+Abrir plano de ação
+```
+
+Outro:
+
+```text
+Previsão elevada
+      ↓
+Treinamento vencido
+      ↓
+Abrir gestão de treinamento
+```
+
+O dashboard será uma porta de entrada para os módulos operacionais.
+
+---
+
+# 14.9.15 — Dashboard de prevenção
+
+Uma visão específica poderá mostrar:
+
+```text
+PREVENÇÃO
+
+Riscos altos                  18
+Riscos sem controle            5
+Ações vencidas                37
+NC recorrentes                 8
+Treinamentos vencidos         14
+Controles ineficazes           4
+```
+
+Isso permitirá observar sinais antecedentes sem depender exclusivamente dos acidentes registrados.
+
+---
+
+# 14.9.16 — Matriz de atenção
+
+Podemos criar uma visualização cruzando:
+
+```text
+Probabilidade estimada
+        ×
+Contexto operacional
+```
+
+Exemplo conceitual:
+
+```text
+                  PROBABILIDADE
+
+                baixa       alta
+             ┌───────────┬───────────┐
+Contexto     │           │           │
+             │           │           │
+             ├───────────┼───────────┤
+             │           │           │
+             │           │           │
+             └───────────┴───────────┘
+```
+
+Mas o sistema não deverá transformar isso automaticamente em uma classificação normativa de risco.
+
+É uma **visualização analítica**.
+
+---
+
+# 14.9.17 — Dashboard de modelo
+
+Usuários autorizados terão uma área técnica:
+
+```text
+MODELO
+
+PRED-001-v1.0.0
+
+Status:
+HEALTHY
+
+PR-AUC:
+...
+
+ROC-AUC:
+...
+
+Brier Score:
+...
+
+Calibration:
+Normal
+
+Data Drift:
+Normal
+
+Concept Drift:
+Monitorado
+
+Última avaliação:
+...
+```
+
+---
+
+# 14.9.18 — Qualidade da previsão
+
+Também devemos mostrar a qualidade do modelo.
+
+Exemplo:
+
+```text
+QUALIDADE DO MODELO
+
+Discriminação
+PR-AUC             0,71
+
+Calibração
+Brier Score        0,16
+
+Dados
+Qualidade          98,7%
+
+Drift
+Status             Normal
+```
+
+Os valores são ilustrativos.
+
+---
+
+# 14.9.19 — Alertas
+
+O dashboard poderá apresentar:
+
+```text
+ALERTAS
+
+🔴 Dados insuficientes
+🟠 Ações críticas vencidas
+🟠 Drift detectado
+🟡 Treinamentos expirando
+🟡 Modelo necessita avaliação
+```
+
+A severidade real dos alertas deverá ser definida posteriormente pelas regras de negócio.
+
+---
+
+# 14.9.20 — Filtros
+
+Filtros mínimos:
+
+```text
+Empresa
+Estabelecimento
+Setor
+Função
+Período
+Tipo de ocorrência
+Tipo de risco
+Status
+Modelo
+```
+
+Dependendo das permissões do usuário.
+
+---
+
+# 14.9.21 — Segurança do dashboard
+
+O dashboard seguirá as mesmas regras de autorização do restante do SST360.
+
+Exemplo:
+
+```text
+USER
+ ↓
+TENANT
+ ↓
+SCOPE
+ ↓
+PERMISSION
+ ↓
+DASHBOARD
+```
+
+Um usuário de determinada empresa não poderá consultar dados de outra empresa.
+
+---
+
+# 14.9.22 — Dados sensíveis
+
+Informações potencialmente sensíveis deverão possuir controles adicionais.
+
+Principalmente quando o dashboard estiver relacionado a:
+
+* trabalhadores;
+* saúde ocupacional;
+* exames;
+* informações médicas;
+* ocorrências individualizadas.
+
+O dashboard executivo deverá privilegiar dados agregados quando não houver necessidade operacional de identificar trabalhadores.
+
+---
+
+# 14.9.23 — Exportação
+
+Posteriormente poderemos permitir:
+
+```text
+PDF
+Excel
+CSV
+API
+```
+
+Mas a exportação deverá respeitar:
+
+* permissões;
+* escopo;
+* classificação dos dados;
+* auditoria.
+
+---
+
+# 14.9.24 — Auditoria
+
+Eventos relevantes deverão ser registrados.
+
+Exemplos:
+
+```text
+Usuário abriu previsão
+Usuário consultou explicação
+Usuário exportou dashboard
+Usuário consultou dados analíticos
+Usuário alterou filtro sensível
+```
+
+Isso será integrado ao módulo de Audit já definido.
+
+---
+
+# 14.9.25 — Arquitetura da tela
+
+Conceitualmente:
+
+```text
+┌─────────────────────────────────────────────┐
+│ SST360                                      │
+├───────────────┬─────────────────────────────┤
+│ Dashboard     │                             │
+│               │ Visão Geral                 │
+│ Indicadores   │                             │
+│               │ ┌─────┐ ┌─────┐ ┌─────┐   │
+│ Riscos        │ │KPI 1│ │KPI 2│ │KPI 3│   │
+│               │ └─────┘ └─────┘ └─────┘   │
+│ Ocorrências   │                             │
+│               │ Tendência                   │
+│ Previsões     │ ────────────────────────    │
+│               │                             │
+│ Ações         │ Setores                     │
+│               │ ────────────────────────    │
+│ Modelo        │                             │
+└───────────────┴─────────────────────────────┘
+```
+
+A implementação visual será definida posteriormente na **FASE 5 — UX/UI**, portanto aqui estamos apenas estabelecendo os requisitos funcionais do dashboard.
+
+---
+
+# 14.9.26 — Arquitetura analítica final
+
+Com todas as etapas concluídas:
+
+```text
+                 SST360
+                   │
+                   ▼
+          Dados Operacionais
+                   │
+      ┌────────────┼────────────┐
+      ▼            ▼            ▼
+ Indicadores   Estatística   Features
+      │            │            │
+      └────────────┼────────────┘
+                   ▼
+             Modelos ML
+                   │
+          ┌────────┴────────┐
+          ▼                 ▼
+     Probabilidade      Explicação
+          │                 │
+          └────────┬────────┘
+                   ▼
+            Monitoramento
+                   │
+                   ▼
+          Dashboard Preditivo
+                   │
+                   ▼
+             Profissional
+                 SST
+                   │
+                   ▼
+          Ação preventiva
+                   │
+                   ▼
+             Novo dado
+                   │
+                   └──────────► ciclo
+```
+
+---
+
+# 14.9.27 — Ciclo de inteligência do SST360
+
+Esse é o conceito mais importante que fechamos na FASE 14:
+
+```text
+DADOS
+  ↓
+INFORMAÇÃO
+  ↓
+INDICADORES
+  ↓
+ANÁLISE
+  ↓
+PADRÕES
+  ↓
+PREDIÇÃO
+  ↓
+EXPLICAÇÃO
+  ↓
+DECISÃO HUMANA
+  ↓
+AÇÃO PREVENTIVA
+  ↓
+NOVOS DADOS
+  ↓
+APRENDIZADO
+```
+
+Isso transforma a Ciência de Dados em uma camada integrada ao sistema, e não em um módulo isolado.
+
+---
+
+# 14.9.28 — Resultado da FASE 14.9
+
+| Componente              | Status |
+| ----------------------- | ------ |
+| Dashboard executivo     | ✅      |
+| Dashboard SST           | ✅      |
+| Dashboard técnico       | ✅      |
+| Dashboard analítico     | ✅      |
+| Indicadores             | ✅      |
+| Leading indicators      | ✅      |
+| Lagging indicators      | ✅      |
+| Tendências              | ✅      |
+| Previsões               | ✅      |
+| Explicações             | ✅      |
+| Histórico               | ✅      |
+| Filtros                 | ✅      |
+| Integração com módulos  | ✅      |
+| Segurança               | ✅      |
+| Auditoria               | ✅      |
+| Monitoramento do modelo | ✅      |
+
+---
+
+# FASE 14 — CONCLUÍDA
+
+Com isso, encerramos conceitualmente toda a **FASE 14 — Inteligência de Dados e Analytics**.
+
+```text
+14.1 Engenharia de Dados SST       ✅
+14.2 Modelo de Ocorrências         ✅
+14.3 Indicadores                   ✅
+14.4 Análise Estatística           ✅
+14.5 Feature Engineering           ✅
+14.6 Modelos Preditivos            ✅
+14.7 Explainable AI                ✅
+14.8 Monitoramento dos Modelos     ✅
+14.9 Dashboard Preditivo          ✅
+```
+
+### O que foi construído conceitualmente
+
+O SST360 agora possui uma arquitetura que começa em:
+
+**dados operacionais de SST**
+
+e chega até:
+
+**análise estatística → predição → explicação → monitoramento → dashboard → ação preventiva.**
+
+E mantivemos uma regra importante durante toda a FASE 14:
+
+> **O modelo fornece evidências estatísticas e estimativas probabilísticas; a avaliação e a decisão de SST continuam sob responsabilidade do profissional.**
+
+---
+
+## Próximo ponto do projeto
+
+Com a FASE 14 fechada, voltamos ao roadmap principal:
+
+```text
+FASE 15 — Integrações
+```
+
+Nela vamos especificar as integrações externas do SST360, incluindo **eSocial, APIs, importação/exportação de dados, sistemas corporativos, documentos externos e mecanismos de integração**, definindo primeiro o que será integração do MVP e o que ficará para versões futuras.
+
+Depois disso seguiremos para **FASE 16 — Testes**, **FASE 17 — CI/CD**, **FASE 18 — Deploy SaaS** e **FASE 19 — Evolução e Escalabilidade**.
