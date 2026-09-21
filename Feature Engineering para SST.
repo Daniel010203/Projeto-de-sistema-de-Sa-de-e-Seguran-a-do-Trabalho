@@ -1,0 +1,794 @@
+Vamos avançar para a **FASE 14.5 — Feature Engineering para SST**.
+
+Esta é uma etapa central do projeto, porque vamos transformar os dados operacionais do SST360 em **variáveis analíticas capazes de representar o contexto de risco ao longo do tempo**.
+
+# SST360 — FASE 14.5
+
+## Feature Engineering
+
+### Objetivo
+
+Criar variáveis que representem:
+
+* histórico;
+* exposição;
+* frequência;
+* gravidade;
+* reincidência;
+* prevenção;
+* comportamento dos riscos;
+* condições organizacionais;
+* tendência temporal.
+
+A ideia é chegar a:
+
+```text
+Dados SST
+    ↓
+Features
+    ↓
+Modelo estatístico / ML
+    ↓
+Probabilidade / previsão
+```
+
+---
+
+# 1. Regra fundamental: a dimensão temporal
+
+Para prever um evento futuro, precisamos sempre saber **quando cada informação estava disponível**.
+
+Vamos trabalhar com uma referência:
+
+```text
+Data de corte = T
+```
+
+Somente informações disponíveis até `T` poderão ser utilizadas para prever:
+
+```text
+T + 30 dias
+```
+
+Exemplo:
+
+```text
+31/05
+  │
+  ├── dados disponíveis até 31/05
+  │
+  ▼
+Modelo
+  │
+  ▼
+Previsão para junho
+```
+
+Isso evita **data leakage**.
+
+---
+
+# 2. Janelas temporais
+
+Uma das principais estruturas do modelo será utilizar janelas históricas.
+
+### 7 dias
+
+Representa comportamento muito recente.
+
+```text
+occurrences_7d
+```
+
+### 30 dias
+
+Representa curto prazo.
+
+```text
+occurrences_30d
+```
+
+### 90 dias
+
+Representa comportamento recente consolidado.
+
+```text
+occurrences_90d
+```
+
+### 180 dias
+
+Representa médio prazo.
+
+```text
+occurrences_180d
+```
+
+### 365 dias
+
+Representa histórico anual.
+
+```text
+occurrences_365d
+```
+
+Isso permite ao modelo distinguir:
+
+> "O setor sempre teve esse comportamento"
+
+de:
+
+> "O setor começou a apresentar esse comportamento recentemente."
+
+---
+
+# 3. Features de ocorrência
+
+Teremos inicialmente:
+
+```text
+occurrences_7d
+occurrences_30d
+occurrences_90d
+occurrences_180d
+occurrences_365d
+```
+
+Separadas por tipo:
+
+```text
+accidents_30d
+incidents_30d
+near_misses_30d
+nonconformities_30d
+```
+
+Também:
+
+```text
+serious_occurrences_90d
+```
+
+e:
+
+```text
+high_potential_occurrences_90d
+```
+
+---
+
+# 4. Frequência relativa
+
+Contagem absoluta pode enganar.
+
+Exemplo:
+
+```text
+Setor A
+100 trabalhadores
+10 ocorrências
+
+Setor B
+10 trabalhadores
+3 ocorrências
+```
+
+O setor A tem mais ocorrências absolutas, mas a exposição/população é diferente.
+
+Portanto, teremos features normalizadas quando os dados permitirem:
+
+```text
+occurrences_per_worker
+occurrences_per_100_workers
+occurrences_per_worked_hour
+```
+
+A definição exata da exposição será documentada para cada métrica.
+
+---
+
+# 5. Features de gravidade
+
+Exemplos:
+
+```text
+severity_mean_30d
+severity_max_90d
+lost_days_30d
+lost_days_90d
+lost_days_365d
+```
+
+Também podemos trabalhar com categorias:
+
+```text
+high_severity_count_90d
+```
+
+---
+
+# 6. Features de reincidência
+
+Muito importantes.
+
+Exemplo:
+
+```text
+repeat_occurrences_90d
+```
+
+E:
+
+```text
+same_risk_recurrence_90d
+same_cause_recurrence_180d
+same_sector_recurrence_90d
+```
+
+Também podemos calcular:
+
+```text
+days_since_last_occurrence
+```
+
+Essa variável pode ser muito relevante.
+
+---
+
+# 7. Features de ações corretivas
+
+Vamos utilizar o mecanismo de ações do SST360.
+
+Exemplos:
+
+```text
+open_actions
+overdue_actions
+overdue_actions_30d
+completed_actions_30d
+action_completion_rate
+```
+
+E uma variável especialmente importante:
+
+```text
+days_since_overdue_action
+```
+
+Também:
+
+```text
+critical_overdue_actions
+```
+
+quando houver classificação de criticidade.
+
+---
+
+# 8. Features de não conformidade
+
+Exemplos:
+
+```text
+nc_open
+nc_overdue
+nc_30d
+nc_90d
+nc_recurrent_90d
+```
+
+E:
+
+```text
+nc_resolution_rate
+```
+
+---
+
+# 9. Features de treinamento
+
+Poderemos criar:
+
+```text
+training_valid_rate
+training_expired_count
+training_expiring_30d
+training_coverage_rate
+```
+
+Por exemplo:
+
+```text
+training_coverage_rate =
+trabalhadores treinados /
+trabalhadores que deveriam estar treinados
+```
+
+---
+
+# 10. Features de risco
+
+Aqui conectamos diretamente o motor preditivo ao GRO/PGR.
+
+Exemplos:
+
+```text
+high_risk_count
+critical_risk_count
+uncontrolled_risk_count
+overdue_risk_assessments
+```
+
+Também:
+
+```text
+average_risk_score
+max_risk_score
+```
+
+Quando a metodologia de avaliação permitir.
+
+---
+
+# 11. Features de controles
+
+Exemplos:
+
+```text
+controls_active
+controls_expired
+controls_pending
+controls_ineffective
+```
+
+E:
+
+```text
+control_coverage_rate
+```
+
+Outra variável interessante:
+
+```text
+risks_without_control
+```
+
+---
+
+# 12. Features de exposição
+
+Exposição é fundamental para evitar interpretações incorretas.
+
+Possíveis variáveis:
+
+```text
+worker_count
+hours_worked
+exposed_workers
+exposure_hours
+```
+
+Também:
+
+```text
+exposure_change_30d
+exposure_change_90d
+```
+
+Exemplo:
+
+```text
+efetivo anterior = 100
+efetivo atual = 140
+
+aumento = 40%
+```
+
+Esse crescimento pode alterar o contexto operacional.
+
+---
+
+# 13. Features de tendência
+
+Não basta saber que ocorreram 10 eventos.
+
+Queremos saber se:
+
+**10 é normal ou representa uma mudança?**
+
+Podemos calcular:
+
+```text
+occurrence_trend_30d
+occurrence_trend_90d
+```
+
+Além de:
+
+```text
+moving_average_30d
+moving_average_90d
+```
+
+E:
+
+```text
+variation_30d
+variation_90d
+```
+
+---
+
+# 14. Features temporais
+
+Podemos incluir:
+
+```text
+month
+quarter
+day_of_week
+shift
+season
+```
+
+Mas essas variáveis devem ser utilizadas com cuidado.
+
+Por exemplo, mês pode capturar sazonalidade real ou simplesmente refletir mudanças operacionais específicas.
+
+---
+
+# 15. Features organizacionais
+
+Podemos representar:
+
+```text
+sector
+establishment
+position
+activity
+shift
+```
+
+Mas existe uma preocupação:
+
+### Alta cardinalidade
+
+Se tivermos milhares de funções ou atividades diferentes, não podemos simplesmente transformar cada uma em uma variável sem avaliar a estratégia.
+
+Dependendo do modelo, poderemos utilizar:
+
+* encoding;
+* agrupamento;
+* categorias hierárquicas;
+* embeddings, se futuramente houver justificativa.
+
+Para o primeiro modelo, manteremos a solução simples.
+
+---
+
+# 16. Features de mudança
+
+Essa será uma categoria muito interessante.
+
+Queremos detectar **mudanças recentes**.
+
+Exemplos:
+
+```text
+recent_staff_change
+recent_process_change
+recent_risk_change
+recent_control_change
+recent_incident_change
+```
+
+Podemos calcular:
+
+```text
+staff_growth_30d
+risk_increase_30d
+occurrence_growth_30d
+```
+
+Isso permite ao modelo considerar não apenas o estado atual, mas **a velocidade da mudança**.
+
+---
+
+# 17. Features de relacionamento
+
+Podemos combinar informações.
+
+Exemplo:
+
+```text
+high_risk_exposed_workers
+```
+
+ou:
+
+```text
+overdue_actions / open_actions
+```
+
+ou:
+
+```text
+occurrences / exposed_workers
+```
+
+ou:
+
+```text
+high_risk_count / worker_count
+```
+
+Essas variáveis podem ser mais informativas que os valores absolutos.
+
+---
+
+# 18. Feature crítica: tempo desde o último evento
+
+Uma das primeiras features que eu colocaria no modelo:
+
+```text
+days_since_last_occurrence
+```
+
+Exemplo:
+
+```text
+Setor A → 3 dias
+Setor B → 97 dias
+Setor C → 420 dias
+```
+
+Mas não devemos assumir que "menos dias = maior risco" automaticamente. Isso deverá ser validado empiricamente.
+
+---
+
+# 19. Feature de histórico acumulado
+
+Também podemos ter:
+
+```text
+total_occurrences_lifetime
+```
+
+e:
+
+```text
+total_serious_occurrences_lifetime
+```
+
+Porém, precisaremos tomar cuidado com mudanças de tamanho da população.
+
+Por isso, histórico absoluto e histórico normalizado devem coexistir quando possível.
+
+---
+
+# 20. Estrutura inicial de Feature Store
+
+Não precisamos implementar uma ferramenta específica de Feature Store agora.
+
+Podemos começar conceitualmente com uma camada:
+
+```text
+SST360
+   │
+   ▼
+Operational Data
+   │
+   ▼
+Feature Engineering
+   │
+   ▼
+Analytical Dataset
+```
+
+Posteriormente, podemos ter algo como:
+
+```text
+analytical_features
+```
+
+ou gerar datasets por consulta/pipeline.
+
+---
+
+# 21. Exemplo de dataset analítico
+
+Imagine que queremos prever:
+
+**ocorrência nos próximos 30 dias.**
+
+Teríamos:
+
+| setor | ocorr_30d | ocorr_90d | ações_venc | NC_90d | risco_alto | trein_valid | dias_últ_evento | target |
+| ----- | --------: | --------: | ---------: | -----: | ---------: | ----------: | --------------: | -----: |
+| A     |         4 |         9 |          6 |      8 |          3 |         82% |              12 |      1 |
+| B     |         1 |         2 |          0 |      1 |          1 |         98% |              74 |      0 |
+| C     |         3 |         7 |          4 |      5 |          4 |         89% |              18 |      1 |
+
+O:
+
+```text
+target
+```
+
+representaria o evento que queremos prever.
+
+Por exemplo:
+
+```text
+1 = houve ocorrência no período futuro
+0 = não houve
+```
+
+---
+
+# 22. Definição do primeiro problema preditivo
+
+Para não tentar prever tudo ao mesmo tempo, vamos começar com um problema simples:
+
+## Modelo PRED-001
+
+**Objetivo:**
+
+Estimar a probabilidade de um setor apresentar pelo menos uma ocorrência SST no horizonte futuro definido.
+
+Inicialmente:
+
+```text
+Horizonte = 30 dias
+Unidade de análise = setor
+Target = ocorrência_sim/não
+```
+
+Depois podemos criar:
+
+```text
+PRED-002 → quantidade de ocorrências
+PRED-003 → ocorrência de alta severidade
+PRED-004 → reincidência
+PRED-005 → tendência
+```
+
+---
+
+# 23. Cuidados com o modelo
+
+O SST360 deverá registrar:
+
+* data de treinamento;
+* versão do modelo;
+* conjunto de dados utilizado;
+* features utilizadas;
+* métricas;
+* período de treinamento;
+* período de validação;
+* período de teste;
+* hiperparâmetros;
+* versão do código.
+
+Isso será essencial para **rastreabilidade e auditoria**.
+
+---
+
+# 24. Primeira Feature Set oficial
+
+Para o PRED-001, proponho começarmos com um conjunto relativamente pequeno:
+
+### Histórico
+
+```text
+occurrences_30d
+occurrences_90d
+occurrences_365d
+days_since_last_occurrence
+```
+
+### Gravidade
+
+```text
+serious_occurrences_90d
+lost_days_90d
+```
+
+### Prevenção
+
+```text
+overdue_actions
+action_completion_rate
+nc_90d
+nc_recurrent_90d
+```
+
+### Risco
+
+```text
+high_risk_count
+uncontrolled_risk_count
+average_risk_score
+```
+
+### Treinamento
+
+```text
+training_coverage_rate
+training_expired_count
+```
+
+### Exposição
+
+```text
+worker_count
+hours_worked
+exposed_workers
+```
+
+### Mudança
+
+```text
+worker_change_30d
+occurrence_change_30d
+risk_change_30d
+```
+
+Isso já fornece uma base razoável para começarmos a experimentar modelos posteriormente.
+
+---
+
+# 25. O que não faremos
+
+Não vamos criar artificialmente:
+
+```text
+risk_score = 0.73
+```
+
+sem validação.
+
+Também não vamos atribuir pesos arbitrários como:
+
+```text
+acidente = 10 pontos
+NC = 5 pontos
+treinamento = -3 pontos
+```
+
+e chamar isso de Machine Learning.
+
+Primeiro vamos construir os dados, testar hipóteses e avaliar empiricamente quais variáveis têm valor preditivo.
+
+---
+
+# Status da FASE 14
+
+| Etapa                        | Status |
+| ---------------------------- | ------ |
+| 14.1 Engenharia dos Dados    | ✅      |
+| 14.2 Modelo de Ocorrências   | ✅      |
+| 14.3 Indicadores             | ✅      |
+| 14.4 Análise Estatística     | ✅      |
+| **14.5 Feature Engineering** | **✅**  |
+| 14.6 Modelos Preditivos      | ⏭️     |
+| 14.7 Explainable AI          | ⏳      |
+| 14.8 Monitoramento           | ⏳      |
+| 14.9 Dashboard Preditivo     | ⏳      |
+
+## Próxima etapa: 14.6 — Modelos Preditivos
+
+Aqui começaremos a desenhar tecnicamente o **PRED-001**, incluindo:
+
+1. definição formal do target;
+2. preparação do dataset;
+3. divisão temporal;
+4. baseline estatístico;
+5. primeiro modelo;
+6. métricas;
+7. validação;
+8. comparação de modelos;
+9. calibração das probabilidades;
+10. critérios para colocar o modelo em produção.
+
+**Ainda não vamos treinar um modelo agora.** Primeiro vamos especificar o PRED-001 corretamente. Isso mantém a engenharia do projeto coerente com o restante do SST360.
