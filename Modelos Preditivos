@@ -1,0 +1,40 @@
+Vamos retomar exatamente de onde paramos no **SST360**.
+
+### FASE 14 — Inteligência de Dados e Analytics
+
+Já concluímos:
+
+* **14.1** Engenharia de Dados SST
+* **14.2** Modelo de Dados de Ocorrências SST
+* **14.3** Indicadores de SST
+* **14.4** Análise Estatística de SST
+* **14.5** Feature Engineering para SST
+
+### Próxima etapa: **FASE 14.6 — Modelos Preditivos**
+
+Vamos começar pelo **PRED-001**, que será o primeiro problema preditivo oficial do SST360:
+
+> **Estimar a probabilidade de um setor apresentar pelo menos uma ocorrência de SST nos próximos 30 dias.**
+
+Antes de escolher algoritmo ou escrever código, vamos definir tecnicamente o modelo:
+
+1. **Objetivo preditivo**
+2. **Unidade de análise**
+3. **Variável-alvo (target)**
+4. **Janela temporal**
+5. **Variáveis/features**
+6. **Construção do dataset de treinamento**
+7. **Separação temporal treino/validação/teste**
+8. **Algoritmos candidatos**
+9. **Métricas de avaliação**
+10. **Critérios de aceitação**
+11. **Interpretação dos resultados**
+12. **Limitações e riscos do modelo**
+
+A sequência será:
+
+**Dados históricos → Dataset analítico → Target → Features → Treinamento → Validação → Avaliação → Predição → Explicabilidade**
+
+E vamos manter uma regra importante: **não vamos criar um “score de risco” arbitrário e chamá-lo de inteligência artificial**. O modelo deverá aprender padrões a partir dos dados históricos e sua performance será medida objetivamente.
+
+Podemos iniciar pela **14.6.1 — Definição formal do PRED-001**.
