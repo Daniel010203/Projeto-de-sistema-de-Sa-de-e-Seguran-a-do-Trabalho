@@ -1,0 +1,542 @@
+Vamos avançar para a **FASE 14.3 — Modelo Analítico de Indicadores de SST**.
+
+Aqui vamos estabelecer a camada que conecta os dados operacionais do SST360 à estatística e, posteriormente, aos modelos preditivos.
+
+# 14.3 — Indicadores de SST
+
+## 1. Objetivo
+
+O SST360 deverá transformar os registros operacionais em indicadores que permitam analisar:
+
+* frequência;
+* gravidade;
+* exposição;
+* prevenção;
+* reincidência;
+* conformidade;
+* tendências;
+* distribuição por setor, função, estabelecimento e risco.
+
+A estrutura será:
+
+```text
+Dados operacionais
+       ↓
+Tratamento/validação
+       ↓
+Indicadores
+       ↓
+Análise estatística
+       ↓
+Modelos preditivos
+```
+
+---
+
+# 2. Dimensões de análise
+
+Todo indicador deverá poder, quando aplicável, ser analisado por:
+
+* empresa;
+* estabelecimento;
+* setor;
+* função;
+* período;
+* turno;
+* atividade;
+* risco;
+* tipo de ocorrência;
+* gravidade;
+* população exposta.
+
+Isso permitirá consultas como:
+
+> "Como evoluíram as ocorrências do setor X nos últimos 12 meses?"
+
+ou:
+
+> "Quais riscos concentram maior número de ocorrências?"
+
+---
+
+# 3. Indicadores de ocorrências
+
+### IND-001 — Número de acidentes
+
+Quantidade de acidentes registrados no período.
+
+```text
+Acidentes = COUNT(acidentes)
+```
+
+### IND-002 — Número de incidentes
+
+Quantidade de incidentes.
+
+### IND-003 — Número de quase acidentes
+
+Quantidade de quase acidentes.
+
+### IND-004 — Número total de ocorrências
+
+```text
+Total = acidentes + incidentes + quase_acidentes + demais tipos
+```
+
+Esse indicador será útil, mas **não deve ser utilizado isoladamente**, porque eventos possuem naturezas e severidades diferentes.
+
+---
+
+# 4. Indicadores de frequência
+
+Aqui precisamos ser rigorosos com metodologia.
+
+Uma forma clássica de expressar a taxa de frequência é:
+
+```text
+TF = N × K / H
+```
+
+onde:
+
+* `N` = número de eventos considerados;
+* `H` = horas-homem de exposição/trabalho;
+* `K` = constante definida pela metodologia adotada.
+
+O sistema **não deve fixar uma constante universal sem antes definir qual metodologia normativa/organizacional será adotada**.
+
+Portanto, no SST360 teremos:
+
+```text
+Indicador
+   ├── fórmula
+   ├── metodologia
+   ├── unidade
+   └── versão
+```
+
+Isso permite alterar a metodologia sem reconstruir o sistema.
+
+---
+
+# 5. Indicadores de gravidade
+
+Podemos estruturar o indicador com base em:
+
+* dias perdidos;
+* dias debitados, quando aplicável à metodologia;
+* horas trabalhadas;
+* classificação da ocorrência.
+
+A estrutura conceitual:
+
+```text
+Gravidade = impacto dos eventos / exposição
+```
+
+Novamente, a fórmula oficial ficará parametrizada.
+
+---
+
+# 6. Indicadores de prevenção
+
+Essa será uma grande vantagem do SST360.
+
+Não queremos analisar somente aquilo que **já aconteceu**.
+
+Podemos acompanhar:
+
+### IND-010 — Ações vencidas
+
+```text
+ações vencidas / ações abertas
+```
+
+### IND-011 — Taxa de conclusão das ações
+
+```text
+ações concluídas / ações previstas
+```
+
+### IND-012 — Não conformidades reincidentes
+
+Quantidade de NCs que voltaram a ocorrer.
+
+### IND-013 — Treinamentos válidos
+
+```text
+trabalhadores com treinamento válido /
+trabalhadores que deveriam estar treinados
+```
+
+### IND-014 — Cobertura de treinamentos
+
+Percentual da população que recebeu os treinamentos requeridos.
+
+---
+
+# 7. Indicadores de exposição
+
+Aqui começamos a construir uma ponte importante para a previsão.
+
+Exemplos:
+
+* trabalhadores expostos por risco;
+* trabalhadores expostos por setor;
+* horas de exposição;
+* quantidade de riscos elevados;
+* quantidade de avaliações vencidas;
+* percentual de riscos com controles implementados;
+* percentual de riscos com controles vencidos.
+
+Podemos criar:
+
+### Índice de exposição
+
+Não devemos inventar uma fórmula arbitrária.
+
+Primeiro definimos:
+
+1. quais variáveis entram;
+2. como são normalizadas;
+3. qual metodologia será utilizada;
+4. como o índice será validado.
+
+---
+
+# 8. Indicadores de controle
+
+Para cada risco:
+
+```text
+Risco
+ ↓
+Controle
+ ↓
+Status
+ ↓
+Efetividade
+```
+
+Indicadores possíveis:
+
+* controles implementados;
+* controles pendentes;
+* controles vencidos;
+* controles por hierarquia;
+* riscos sem controle;
+* riscos com controle insuficiente;
+* reincidência após implementação de controle.
+
+Isso será muito importante para o futuro modelo preditivo.
+
+---
+
+# 9. Indicadores de reincidência
+
+Um dos indicadores mais interessantes para Ciência de Dados.
+
+Podemos medir:
+
+```text
+Reincidência =
+eventos relacionados a condição anteriormente registrada
+```
+
+Exemplo:
+
+```text
+Setor A
+
+Jan → NC
+Fev → ação corretiva
+Mar → NC semelhante
+Abr → ocorrência
+```
+
+O sistema poderá identificar:
+
+> **reincidência de condição**
+
+em vez de tratar cada evento como completamente independente.
+
+---
+
+# 10. Indicadores temporais
+
+Todos os indicadores deverão permitir análise temporal:
+
+```text
+Diário
+Semanal
+Mensal
+Trimestral
+Semestral
+Anual
+```
+
+E principalmente:
+
+**comparação histórica.**
+
+Por exemplo:
+
+```text
+2025
+Jan  4
+Fev  5
+Mar  3
+Abr  6
+
+2026
+Jan  6
+Fev  7
+Mar  5
+Abr  9
+```
+
+Isso permitirá posteriormente trabalhar com:
+
+* tendência;
+* sazonalidade;
+* variação;
+* anomalias;
+* previsão.
+
+---
+
+# 11. Indicadores antecedentes e consequentes
+
+Esta distinção será fundamental.
+
+### Indicadores consequentes — Lagging
+
+Medem aquilo que já ocorreu:
+
+* acidentes;
+* afastamentos;
+* dias perdidos;
+* gravidade;
+* incidentes.
+
+### Indicadores antecedentes — Leading
+
+Medem condições relacionadas à prevenção:
+
+* inspeções realizadas;
+* treinamentos;
+* ações concluídas;
+* ações vencidas;
+* não conformidades;
+* controles implementados;
+* participação em programas;
+* avaliações realizadas.
+
+A arquitetura deverá permitir analisar os dois grupos conjuntamente.
+
+---
+
+# 12. O conceito de "sinais antecedentes"
+
+Aqui entramos diretamente na Ciência de Dados.
+
+Imagine:
+
+```text
+            SINAIS ANTECEDENTES
+
+↑ não conformidades
+↑ ações vencidas
+↑ reincidências
+↓ treinamentos válidos
+↑ exposição
+↑ alterações operacionais
+        │
+        ▼
+   Mudança de padrão
+        │
+        ▼
+   Análise estatística
+        │
+        ▼
+   Modelo preditivo
+```
+
+O sistema não afirmará que um acidente necessariamente ocorrerá.
+
+Ele poderá identificar que **determinadas condições estão associadas historicamente a maior ocorrência de eventos**.
+
+Essa diferença metodológica é importante.
+
+---
+
+# 13. Estrutura de um indicador
+
+Vamos padronizar cada indicador com:
+
+```text
+Código
+Nome
+Descrição
+Tipo
+Fórmula
+Unidade
+Periodicidade
+Dimensões
+Fonte dos dados
+Metodologia
+Versão
+Responsável
+```
+
+Exemplo:
+
+```text
+IND-001
+Nome: Número de acidentes
+
+Tipo:
+Consequente
+
+Fonte:
+Módulo de Ocorrências
+
+Periodicidade:
+Mensal
+
+Dimensões:
+Empresa
+Estabelecimento
+Setor
+Função
+
+Unidade:
+Quantidade
+```
+
+---
+
+# 14. Modelo conceitual do módulo
+
+Podemos criar futuramente:
+
+```text
+indicators
+indicator_definitions
+indicator_results
+indicator_dimensions
+```
+
+Conceitualmente:
+
+```text
+Indicator
+    │
+    ├── Definition
+    ├── Formula
+    ├── Methodology
+    └── Results
+             │
+             ├── Period
+             ├── Tenant
+             ├── Establishment
+             ├── Sector
+             └── Value
+```
+
+Isso evita deixar todas as fórmulas "presas" no código.
+
+---
+
+# 15. Ponte para Machine Learning
+
+A arquitetura agora começa a ficar muito clara:
+
+```text
+                    SST360
+                       │
+                Dados Operacionais
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+    Indicadores                Dados Brutos
+          │                         │
+          └────────────┬────────────┘
+                       ▼
+                 Data Analysis
+                       │
+              ┌────────┴────────┐
+              ▼                 ▼
+         Estatística        Feature Engineering
+              │                 │
+              └────────┬────────┘
+                       ▼
+                  ML / Forecast
+                       │
+                       ▼
+                Risk Prediction
+```
+
+---
+
+# 16. Primeira versão do catálogo
+
+Para o MVP analítico, proponho começarmos com:
+
+| Código  | Indicador                      |
+| ------- | ------------------------------ |
+| IND-001 | Acidentes                      |
+| IND-002 | Incidentes                     |
+| IND-003 | Quase acidentes                |
+| IND-004 | Total de ocorrências           |
+| IND-005 | Taxa de frequência             |
+| IND-006 | Indicador de gravidade         |
+| IND-007 | Dias perdidos                  |
+| IND-008 | Ações vencidas                 |
+| IND-009 | Taxa de conclusão de ações     |
+| IND-010 | Não conformidades              |
+| IND-011 | Não conformidades reincidentes |
+| IND-012 | Treinamentos válidos           |
+| IND-013 | Cobertura de treinamentos      |
+| IND-014 | Riscos elevados                |
+| IND-015 | Riscos sem controle adequado   |
+| IND-016 | Controles vencidos             |
+| IND-017 | Trabalhadores expostos         |
+| IND-018 | Ocorrências por setor          |
+| IND-019 | Ocorrências por função         |
+| IND-020 | Tendência de ocorrências       |
+
+Esse catálogo é uma **primeira definição de produto**, não uma lista fechada. As fórmulas e metodologias serão formalizadas antes da implementação.
+
+---
+
+## Onde chegamos
+
+Com as etapas **14.1, 14.2 e 14.3**, já temos:
+
+```text
+14.1 Engenharia dos Dados
+        ↓
+14.2 Modelo de Ocorrências
+        ↓
+14.3 Indicadores
+        ↓
+       próxima
+        ↓
+14.4 Análise Estatística
+```
+
+### Próxima etapa: 14.4 — Análise Estatística
+
+Nela vamos definir como o SST360 irá utilizar os dados para identificar:
+
+* tendências;
+* distribuições;
+* correlações/associações;
+* reincidências;
+* anomalias;
+* sazonalidade;
+* diferenças entre setores;
+* relações entre fatores antecedentes e ocorrências.
+
+Depois disso estaremos em condições de estruturar a **primeira camada realmente preditiva do SST360**.
