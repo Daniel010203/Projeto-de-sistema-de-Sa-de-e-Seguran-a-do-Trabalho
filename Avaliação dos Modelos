@@ -1,0 +1,638 @@
+## FASE 14.6 — Modelos Preditivos
+
+### 14.6.6 — Avaliação dos Modelos
+
+Agora vamos definir o **protocolo de avaliação** do PRED-001. Esta etapa é importante porque não basta o modelo gerar uma probabilidade: precisamos saber se ele realmente consegue distinguir setores com maior e menor probabilidade de ocorrência e se suas probabilidades são confiáveis.
+
+---
+
+# 1. Objetivo da avaliação
+
+Para cada modelo, responderemos a cinco perguntas:
+
+1. **Ele identifica adequadamente os casos positivos?**
+2. **Quantos falsos positivos produz?**
+3. **Consegue ordenar corretamente os setores por risco preditivo?**
+4. **As probabilidades estimadas são calibradas?**
+5. **O desempenho permanece estável ao longo do tempo?**
+
+---
+
+# 2. Matriz de confusão
+
+Começaremos pela matriz de confusão.
+
+```text
+                    REAL
+                0           1
+             ┌───────────┬───────────┐
+        0    │    TN     │    FN     │
+PREVISTO     ├───────────┼───────────┤
+        1    │    FP     │    TP     │
+             └───────────┴───────────┘
+```
+
+Onde:
+
+* **TP** — verdadeiro positivo
+* **TN** — verdadeiro negativo
+* **FP** — falso positivo
+* **FN** — falso negativo
+
+### Exemplo
+
+Se o modelo disser:
+
+> "Este setor possui ocorrência prevista."
+
+e realmente ocorrer uma ocorrência:
+
+**TP**
+
+Se o modelo disser que haverá ocorrência, mas não houver:
+
+**FP**
+
+Se disser que não haverá e realmente não houver:
+
+**TN**
+
+Se disser que não haverá, mas ocorrer:
+
+**FN**
+
+---
+
+# 3. Precision
+
+A Precision responde:
+
+> Entre os setores classificados pelo modelo como positivos, quantos realmente apresentaram ocorrência?
+
+Fórmula:
+
+$$
+Precision = \frac{TP}{TP+FP}
+$$
+
+Exemplo:
+
+```text
+20 previsões positivas
+15 realmente tiveram ocorrência
+```
+
+Então:
+
+```text
+Precision = 15 / 20 = 75%
+```
+
+---
+
+# 4. Recall
+
+O Recall responde:
+
+> Entre todos os setores que realmente tiveram ocorrência, quantos o modelo conseguiu identificar?
+
+Fórmula:
+
+$$
+Recall = \frac{TP}{TP+FN}
+$$
+
+Esse indicador será particularmente importante porque perder ocorrências reais pode ser relevante para uma ferramenta de apoio à gestão de SST.
+
+Mas não vamos considerar Recall isoladamente.
+
+---
+
+# 5. F1-score
+
+O F1 combina Precision e Recall:
+
+$$
+F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
+$$
+
+Ele será útil para comparar modelos quando precisamos equilibrar:
+
+```text
+detecção
+   ↕
+falsos positivos
+```
+
+---
+
+# 6. Accuracy
+
+Também podemos calcular:
+
+$$
+Accuracy = \frac{TP+TN}{TP+TN+FP+FN}
+$$
+
+Mas ela **não será a principal métrica de decisão**.
+
+Se somente 5% dos casos forem positivos, um modelo que sempre diga "não" pode apresentar accuracy de 95%.
+
+Isso não significa que seja útil para o objetivo do PRED-001.
+
+---
+
+# 7. ROC-AUC
+
+A **ROC-AUC** mede a capacidade do modelo de separar:
+
+```text
+ocorrência
+      ×
+não ocorrência
+```
+
+considerando diferentes thresholds.
+
+De maneira simplificada:
+
+```text
+AUC próxima de 0,5
+→ pouco poder discriminativo
+
+AUC maior
+→ melhor capacidade de discriminação
+```
+
+Não vamos estabelecer previamente que determinado valor torna um modelo "bom". A interpretação dependerá do contexto, do baseline e do desempenho em dados realmente não vistos.
+
+---
+
+# 8. PR-AUC
+
+Para o PRED-001, a **PR-AUC** terá importância especial.
+
+Ela considera:
+
+* Precision
+* Recall
+
+e pode ser mais informativa quando a classe positiva é relativamente rara.
+
+Por exemplo:
+
+```text
+Ocorrências futuras = 8%
+Não ocorrência = 92%
+```
+
+Nesse cenário, ROC-AUC isoladamente pode transmitir uma visão incompleta.
+
+A PR-AUC deverá ser comparada também com o nível de prevalência da classe positiva.
+
+---
+
+# 9. Calibração
+
+Esta será uma das métricas mais importantes para o produto.
+
+Imagine que o modelo produza:
+
+```text
+Setor A → 80%
+Setor B → 60%
+Setor C → 20%
+```
+
+A pergunta não é somente:
+
+> "Qual setor foi classificado corretamente?"
+
+Precisamos perguntar:
+
+> **Quando o modelo diz 80%, os casos semelhantes realmente ocorrem aproximadamente 80% das vezes?**
+
+Isso é calibração.
+
+---
+
+# 10. Exemplo de calibração
+
+Imagine 100 previsões nas quais o modelo informa aproximadamente:
+
+```text
+70%
+```
+
+Se aproximadamente 70 desses casos realmente apresentarem ocorrência no horizonte definido, temos boa calibração nesse intervalo.
+
+Se somente 30 ocorrerem, o modelo estará **superestimando** a probabilidade.
+
+Se 90 ocorrerem, estará **subestimando**.
+
+---
+
+# 11. Brier Score
+
+Podemos utilizar o **Brier Score** para avaliar a qualidade das probabilidades.
+
+Para classificação binária:
+
+$$
+BS = \frac{1}{N}\sum_{i=1}^{N}(p_i-y_i)^2
+$$
+
+Onde:
+
+* \(p_i\) = probabilidade prevista;
+* \(y_i\) = resultado real, 0 ou 1.
+
+Quanto menor o erro quadrático médio das probabilidades, melhor.
+
+Ele será utilizado em conjunto com outras métricas, não isoladamente.
+
+---
+
+# 12. Curva de calibração
+
+Também poderemos gerar uma curva:
+
+```text
+Probabilidade prevista
+1.0 │                 *
+    │             *
+    │         *
+    │      *
+    │   *
+0.0 └────────────────────
+       Probabilidade real
+```
+
+Quanto mais próxima da relação ideal:
+
+```text
+previsto = observado
+```
+
+melhor a calibração.
+
+---
+
+# 13. Avaliação temporal
+
+O desempenho não será calculado apenas uma vez.
+
+Podemos avaliar:
+
+```text
+2026 Q1
+2026 Q2
+2026 Q3
+2026 Q4
+```
+
+ou em outras janelas adequadas aos dados.
+
+Exemplo:
+
+| Período   | PR-AUC | Recall | F1 |
+| --------- | -----: | -----: | -: |
+| Período 1 |      — |      — |  — |
+| Período 2 |      — |      — |  — |
+| Período 3 |      — |      — |  — |
+| Período 4 |      — |      — |  — |
+
+Isso permite identificar **degradação temporal**.
+
+---
+
+# 14. Comparação com o baseline
+
+Essa será uma regra obrigatória.
+
+Não basta:
+
+```text
+Modelo = PR-AUC 0,65
+```
+
+Precisamos saber:
+
+```text
+Baseline = PR-AUC ?
+Modelo = PR-AUC 0,65
+```
+
+E então analisar a diferença.
+
+O mesmo vale para:
+
+* Recall;
+* Precision;
+* F1;
+* calibração.
+
+---
+
+# 15. Exemplo de relatório
+
+O SST360 poderá gerar internamente algo semelhante a:
+
+| Modelo              | PR-AUC | ROC-AUC | Precision | Recall | F1 | Brier |
+| ------------------- | -----: | ------: | --------: | -----: | -: | ----: |
+| BL-001              |      — |       — |         — |      — |  — |     — |
+| BL-002              |      — |       — |         — |      — |  — |     — |
+| BL-003              |      — |       — |         — |      — |  — |     — |
+| Logistic Regression |      — |       — |         — |      — |  — |     — |
+| Random Forest       |      — |       — |         — |      — |  — |     — |
+| Gradient Boosting   |      — |       — |         — |      — |  — |     — |
+
+Os valores serão preenchidos somente após os experimentos.
+
+---
+
+# 16. Teste estatístico da diferença
+
+Quando tivermos dados suficientes, podemos avaliar se diferenças entre modelos são consistentes ou podem ser explicadas pela variabilidade da amostra.
+
+Por exemplo:
+
+```text
+Modelo A
+PR-AUC = 0,62
+
+Modelo B
+PR-AUC = 0,64
+```
+
+Não devemos concluir automaticamente que B é superior.
+
+A diferença de:
+
+```text
+0,02
+```
+
+pode não ser relevante dependendo do tamanho e da variabilidade do conjunto de teste.
+
+---
+
+# 17. Estabilidade
+
+Também vamos analisar a estabilidade do modelo.
+
+Imagine:
+
+```text
+Período 1 → PR-AUC 0,72
+Período 2 → PR-AUC 0,70
+Período 3 → PR-AUC 0,68
+Período 4 → PR-AUC 0,71
+```
+
+Temos uma performance relativamente consistente.
+
+Agora:
+
+```text
+Período 1 → 0,81
+Período 2 → 0,52
+Período 3 → 0,78
+Período 4 → 0,49
+```
+
+Isso exige investigação.
+
+Pode haver:
+
+* mudança de comportamento;
+* mudança de processo;
+* mudança na qualidade dos dados;
+* alteração da população;
+* problema de definição das features;
+* drift.
+
+---
+
+# 18. Avaliação por segmento
+
+Também será interessante avaliar o modelo em diferentes contextos:
+
+* estabelecimento;
+* tipo de setor;
+* atividade;
+* tamanho do setor;
+* nível de exposição;
+* quantidade de histórico disponível.
+
+Isso ajuda a identificar situações em que o modelo funciona bem em um contexto e pior em outro.
+
+---
+
+# 19. Dados insuficientes
+
+Não devemos avaliar um modelo somente pelo número total de registros.
+
+Imagine:
+
+```text
+10.000 registros
+```
+
+mas somente:
+
+```text
+50 ocorrências
+```
+
+A classe positiva pode ser pequena demais para algumas análises confiáveis.
+
+Portanto, o relatório deverá apresentar:
+
+```text
+n total
+n positivos
+n negativos
+```
+
+e outras informações relevantes sobre a amostra.
+
+---
+
+# 20. Threshold operacional
+
+Depois de avaliar as probabilidades, poderemos estudar diferentes thresholds:
+
+```text
+0,20
+0,30
+0,40
+0,50
+0,60
+0,70
+```
+
+Para cada um:
+
+```text
+Precision
+Recall
+F1
+FP
+FN
+```
+
+Isso permitirá observar os trade-offs.
+
+O threshold operacional **não será escolhido automaticamente pela maior acurácia**.
+
+---
+
+# 21. Matriz de decisão operacional
+
+Uma etapa posterior poderá relacionar o resultado estatístico ao fluxo do SST360.
+
+Exemplo conceitual:
+
+```text
+Probabilidade
+      │
+      ▼
+┌─────────────────────┐
+│ Predição PRED-001   │
+└──────────┬──────────┘
+           │
+           ▼
+   Análise profissional
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+Investigar    Monitorar
+```
+
+O modelo fornece **sinal analítico**.
+
+A decisão técnica continua dentro do processo de SST.
+
+---
+
+# 22. Critérios para aprovação
+
+Vamos separar duas coisas:
+
+### Critério estatístico
+
+O modelo precisa demonstrar:
+
+* desempenho mensurável;
+* ausência de leakage;
+* estabilidade temporal razoável;
+* comparação favorável com baseline, quando aplicável;
+* calibração avaliada.
+
+### Critério operacional
+
+Também precisamos perguntar:
+
+* o resultado é compreensível?
+* os profissionais conseguem utilizá-lo?
+* gera ações úteis?
+* produz excesso de alertas?
+* consegue ser integrado ao fluxo de gestão?
+* os dados necessários estão disponíveis continuamente?
+
+Um modelo estatisticamente interessante pode não ser operacionalmente útil.
+
+---
+
+# 23. Protocolo oficial do PRED-001
+
+Podemos consolidar:
+
+```text id="v2n8yi"
+1. Validar dataset
+        ↓
+2. Executar baselines
+        ↓
+3. Treinar modelos
+        ↓
+4. Avaliar no conjunto de validação
+        ↓
+5. Ajustar modelos
+        ↓
+6. Avaliar no período de teste
+        ↓
+7. Calcular métricas
+        ↓
+8. Avaliar calibração
+        ↓
+9. Avaliar estabilidade temporal
+        ↓
+10. Comparar com baselines
+        ↓
+11. Analisar limitações
+        ↓
+12. Decidir se o modelo pode avançar
+```
+
+---
+
+## 14.6.6 — Resultado
+
+O PRED-001 será avaliado principalmente por:
+
+**Discriminação**
+
+* PR-AUC
+* ROC-AUC
+
+**Classificação**
+
+* Precision
+* Recall
+* F1
+* matriz de confusão
+
+**Probabilidade**
+
+* Brier Score
+* curva de calibração
+
+**Robustez**
+
+* desempenho temporal
+* estabilidade
+* análise por segmentos
+
+**Comparação**
+
+* baselines
+* modelos candidatos
+
+**Governança**
+
+* versão do dataset
+* versão das features
+* versão do modelo
+* período utilizado
+* quantidade de observações
+* quantidade de positivos
+
+---
+
+### Status da FASE 14.6
+
+| Etapa                         | Status |
+| ----------------------------- | ------ |
+| 14.6.1 Definição do PRED-001  | ✅      |
+| 14.6.2 Dataset                | ✅      |
+| 14.6.3 Treino/Validação/Teste | ✅      |
+| 14.6.4 Baseline Estatístico   | ✅      |
+| 14.6.5 Modelos candidatos     | ✅      |
+| **14.6.6 Avaliação**          | **✅**  |
+| **14.6.7 Calibração**         | ⏳      |
+| 14.6.8 Seleção/versionamento  | ⏳      |
+
+### Próximo passo: **14.6.7 — Calibração das Probabilidades**
+
+Aqui vamos definir como o SST360 vai transformar a saída dos modelos em **probabilidades confiáveis**, incluindo **Platt Scaling, Isotonic Regression, Brier Score, curva de calibração e validação sem vazamento**.
